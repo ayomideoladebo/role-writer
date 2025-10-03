@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Heart, RefreshCw, Linkedin, Twitter } from "lucide-react";
+import { Copy, Heart, Trash2, Linkedin, Twitter } from "lucide-react";
 import { toast } from "sonner";
 
 interface PostCardProps {
@@ -13,10 +13,10 @@ interface PostCardProps {
     created_at: string;
   };
   onSave: () => void;
-  onRegenerate: () => void;
+  onDelete: () => void;
 }
 
-const PostCard = ({ post, onSave, onRegenerate }: PostCardProps) => {
+const PostCard = ({ post, onSave, onDelete }: PostCardProps) => {
   const [copying, setCopying] = useState(false);
 
   const handleCopy = async () => {
@@ -74,11 +74,11 @@ const PostCard = ({ post, onSave, onRegenerate }: PostCardProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={onRegenerate}
-            className="flex-1 hover:border-primary"
+            onClick={onDelete}
+            className="flex-1 hover:border-destructive text-destructive"
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerate
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete
           </Button>
         </div>
       </CardContent>

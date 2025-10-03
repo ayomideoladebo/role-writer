@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, regenerate, platform } = await req.json();
+    const { profile, regenerate, platform, topic, idea } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -33,9 +33,11 @@ serve(async (req) => {
     }
 
     console.log("Generating posts for user:", user.id);
+    console.log("Topic:", topic);
+    console.log("Idea:", idea);
 
-    // Generate posts based on profile
-    const systemPrompt = `You are an expert social media content writer. Generate engaging, professional posts based on the user's profile.
+    // Generate posts based on profile and user input
+    const systemPrompt = `You are an expert social media content writer. Generate engaging, professional posts based on the user's profile and their specific topic.
 
 Role: ${profile?.role || "Professional"}
 Industry: ${profile?.industry || "General"}
@@ -47,9 +49,17 @@ Create authentic, value-driven content that sounds natural and human. Avoid buzz
     const generatedPosts = [];
 
     for (const plat of platforms) {
-      const prompt = plat === "linkedin"
-        ? "Write a 150-200 word LinkedIn post that provides value, insights, or thought leadership. Use 2-3 relevant hashtags. Make it engaging and professional."
-        : "Write a concise, impactful Twitter post (max 280 characters) that sparks engagement. Include 1-2 relevant hashtags.";
+      let prompt = `Write about this topic: "${topic}"`;
+      
+      if (idea) {
+        prompt += `\n\nUser's ideas/direction: ${idea}`;
+      }
+      
+      if (plat === "linkedin") {
+        prompt += "\n\nFormat: Write a 150-200 word LinkedIn post that provides value, insights, or thought leadership. Use 2-3 relevant hashtags. Make it engaging and professional.";
+      } else {
+        prompt += "\n\nFormat: Write a concise, impactful Twitter post (max 280 characters) that sparks engagement. Include 1-2 relevant hashtags.";
+      }
 
       console.log(`Generating ${plat} post...`);
 

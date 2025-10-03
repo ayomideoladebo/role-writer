@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Sparkles, LogOut, RefreshCw } from "lucide-react";
+import { Sparkles, LogOut, RefreshCw, Lightbulb } from "lucide-react";
 import PostCard from "@/components/PostCard";
 
 interface Post {
@@ -26,6 +30,8 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [idea, setIdea] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,15 +76,28 @@ const Dashboard = () => {
   };
 
   const generatePosts = async () => {
+    if (!topic.trim()) {
+      toast.error("Please enter a topic");
+      return;
+    }
+
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-posts", {
-        body: { profile },
+        body: { 
+          profile,
+          topic: topic.trim(),
+          idea: idea.trim() || undefined,
+        },
       });
 
       if (error) throw error;
 
       toast.success("New posts generated!");
+      
+      // Clear inputs
+      setTopic("");
+      setIdea("");
       
       // Refresh posts
       const { data: { user } } = await supabase.auth.getUser();
@@ -113,27 +132,19 @@ const Dashboard = () => {
     }
   };
 
-  const handleRegenerate = async (postId: string) => {
+  const handleDelete = async (postId: string) => {
     try {
-      const post = posts.find((p) => p.id === postId);
-      const { data, error } = await supabase.functions.invoke("generate-posts", {
-        body: { profile, regenerate: true, platform: post?.platform },
-      });
+      const { error } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", postId);
 
       if (error) throw error;
 
-      // Refresh posts
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: postsData } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-
-      setPosts(postsData || []);
-      toast.success("Post regenerated!");
+      setPosts(posts.filter((p) => p.id !== postId));
+      toast.success("Post deleted");
     } catch (error: any) {
-      toast.error("Failed to regenerate post");
+      toast.error("Failed to delete post");
     }
   };
 
@@ -172,31 +183,68 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Your Content Dashboard</h2>
-            <p className="text-muted-foreground">
-              AI-generated posts tailored to your preferences
-            </p>
-          </div>
-          <Button
-            onClick={generatePosts}
-            disabled={generating}
-            className="bg-gradient-primary hover:opacity-90"
-          >
-            {generating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate New Posts
-              </>
-            )}
-          </Button>
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2">Your Content Dashboard</h2>
+          <p className="text-muted-foreground">
+            AI-generated posts tailored to your preferences
+          </p>
         </div>
+
+        <Card className="mb-8 shadow-card border-2 bg-gradient-card">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-primary rounded-xl">
+                <Lightbulb className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <CardTitle>What do you want to write about?</CardTitle>
+                <CardDescription>
+                  Tell us your topic and ideas to generate tailored content
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="topic">Topic *</Label>
+              <Input
+                id="topic"
+                placeholder="e.g., AI in healthcare, Remote work productivity, Digital marketing trends"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                disabled={generating}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="idea">Your Ideas (optional)</Label>
+              <Textarea
+                id="idea"
+                placeholder="e.g., Share 3 key benefits, Include a personal experience, Focus on practical tips..."
+                value={idea}
+                onChange={(e) => setIdea(e.target.value)}
+                disabled={generating}
+                rows={3}
+              />
+            </div>
+            <Button
+              onClick={generatePosts}
+              disabled={generating || !topic.trim()}
+              className="w-full bg-gradient-primary hover:opacity-90"
+            >
+              {generating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Generating posts...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Posts
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
 
         {posts.length === 0 ? (
           <div className="text-center py-16">
@@ -215,7 +263,7 @@ const Dashboard = () => {
                 key={post.id}
                 post={post}
                 onSave={() => handleSave(post.id)}
-                onRegenerate={() => handleRegenerate(post.id)}
+                onDelete={() => handleDelete(post.id)}
               />
             ))}
           </div>
