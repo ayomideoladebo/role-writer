@@ -16,9 +16,10 @@ interface PostCardProps {
   onSave: () => void;
   onDelete: () => void;
   onEdit: (newContent: string) => void;
+  onCopy: () => void;
 }
 
-const PostCard = ({ post, onSave, onDelete, onEdit }: PostCardProps) => {
+const PostCard = ({ post, onSave, onDelete, onEdit, onCopy }: PostCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
   const [copying, setCopying] = useState(false);
@@ -26,14 +27,14 @@ const PostCard = ({ post, onSave, onDelete, onEdit }: PostCardProps) => {
   const handleCopy = async () => {
     setCopying(true);
     try {
-      await navigator.clipboard.writeText(post.content);
-      toast.success("Copied to clipboard!");
-    } catch (error) {
-      toast.error("Failed to copy");
+      onCopy();
     } finally {
       setTimeout(() => setCopying(false), 1000);
     }
   };
+
+  const charCount = post.content.length;
+  const maxChars = post.platform.toLowerCase() === "twitter" ? 280 : 3000;
 
   const handleSaveEdit = () => {
     if (editedContent.trim() !== post.content) {
@@ -68,6 +69,11 @@ const PostCard = ({ post, onSave, onDelete, onEdit }: PostCardProps) => {
               rows={8}
               className="text-sm"
             />
+            <div className="flex justify-between items-center text-xs">
+              <span className={editedContent.length > maxChars ? 'text-destructive' : 'text-muted-foreground'}>
+                {editedContent.length} / {maxChars} characters
+              </span>
+            </div>
             <div className="flex gap-2">
               <Button size="sm" onClick={handleSaveEdit}>
                 <Save className="w-4 h-4 mr-2" />
@@ -83,6 +89,11 @@ const PostCard = ({ post, onSave, onDelete, onEdit }: PostCardProps) => {
           <>
             <div className="p-4 bg-background/50 rounded-lg border min-h-[150px]">
               <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className={charCount > maxChars ? 'text-destructive' : 'text-muted-foreground'}>
+                {charCount} / {maxChars} characters
+              </span>
             </div>
             <div className="flex gap-2 flex-wrap">
               <Button

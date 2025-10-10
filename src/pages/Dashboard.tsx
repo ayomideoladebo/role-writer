@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter } from "lucide-react";
+import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter, Settings, ArrowUpDown } from "lucide-react";
 import PostCard from "@/components/PostCard";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Post {
   id: string;
@@ -37,6 +39,14 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPlatform, setFilterPlatform] = useState<string>("all");
   const [filterSaved, setFilterSaved] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("newest");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    role: "",
+    industry: "",
+    tone_preference: "",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +73,11 @@ const Dashboard = () => {
     }
 
     setProfile(profileData);
+    setProfileForm({
+      role: profileData?.role || "",
+      industry: profileData?.industry || "",
+      tone_preference: profileData?.tone_preference || "",
+    });
 
     // Fetch posts
     const { data: postsData } = await supabase
@@ -169,13 +184,58 @@ const Dashboard = () => {
     }
   };
 
-  // Filter and search posts
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch = post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPlatform = filterPlatform === "all" || post.platform.toLowerCase() === filterPlatform;
-    const matchesSaved = filterSaved === "all" || (filterSaved === "saved" ? post.is_saved : !post.is_saved);
-    return matchesSearch && matchesPlatform && matchesSaved;
-  });
+  const handleCopy = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success("Copied to clipboard!");
+    } catch (error) {
+      toast.error("Failed to copy");
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setUpdatingProfile(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          role: profileForm.role,
+          industry: profileForm.industry,
+          tone_preference: profileForm.tone_preference,
+        })
+        .eq("id", user!.id);
+
+      if (error) throw error;
+
+      setProfile({
+        ...profile!,
+        role: profileForm.role,
+        industry: profileForm.industry,
+        tone_preference: profileForm.tone_preference,
+      });
+      setSettingsOpen(false);
+      toast.success("Profile updated successfully");
+    } catch (error: any) {
+      toast.error("Failed to update profile");
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
+  // Filter, search, and sort posts
+  const filteredPosts = posts
+    .filter((post) => {
+      const matchesSearch = post.content.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPlatform = filterPlatform === "all" || post.platform.toLowerCase() === filterPlatform;
+      const matchesSaved = filterSaved === "all" || (filterSaved === "saved" ? post.is_saved : !post.is_saved);
+      return matchesSearch && matchesPlatform && matchesSaved;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
 
   const stats = {
     total: posts.length,
@@ -211,10 +271,78 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex gap-2">
+            <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Profile Settings</DialogTitle>
+                  <DialogDescription>
+                    Update your profile preferences to generate better content
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-role">Role</Label>
+                    <Input
+                      id="settings-role"
+                      placeholder="e.g., Marketing Manager"
+                      value={profileForm.role}
+                      onChange={(e) => setProfileForm({ ...profileForm, role: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-industry">Industry</Label>
+                    <Input
+                      id="settings-industry"
+                      placeholder="e.g., Technology"
+                      value={profileForm.industry}
+                      onChange={(e) => setProfileForm({ ...profileForm, industry: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-tone">Tone Preference</Label>
+                    <Select
+                      value={profileForm.tone_preference}
+                      onValueChange={(value) => setProfileForm({ ...profileForm, tone_preference: value })}
+                    >
+                      <SelectTrigger id="settings-tone">
+                        <SelectValue placeholder="Select tone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="professional">Professional</SelectItem>
+                        <SelectItem value="casual">Casual</SelectItem>
+                        <SelectItem value="inspirational">Inspirational</SelectItem>
+                        <SelectItem value="educational">Educational</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    onClick={handleUpdateProfile}
+                    disabled={updatingProfile}
+                    className="w-full"
+                  >
+                    {updatingProfile ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -344,7 +472,7 @@ const Dashboard = () => {
                     className="pl-10"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Tabs value={filterPlatform} onValueChange={setFilterPlatform}>
                     <TabsList>
                       <TabsTrigger value="all">All</TabsTrigger>
@@ -359,6 +487,16 @@ const Dashboard = () => {
                       <TabsTrigger value="unsaved">Unsaved</TabsTrigger>
                     </TabsList>
                   </Tabs>
+                  <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <SelectTrigger className="w-[140px]">
+                      <ArrowUpDown className="w-4 h-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Newest First</SelectItem>
+                      <SelectItem value="oldest">Oldest First</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -392,6 +530,7 @@ const Dashboard = () => {
                 onSave={() => handleSave(post.id)}
                 onDelete={() => handleDelete(post.id)}
                 onEdit={(newContent) => handleEdit(post.id, newContent)}
+                onCopy={() => handleCopy(post.content)}
               />
             ))}
           </div>
