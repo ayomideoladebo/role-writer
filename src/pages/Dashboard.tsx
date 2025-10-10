@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, LogOut, RefreshCw, Lightbulb } from "lucide-react";
+import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter } from "lucide-react";
 import PostCard from "@/components/PostCard";
 
 interface Post {
@@ -32,6 +34,9 @@ const Dashboard = () => {
   const [generating, setGenerating] = useState(false);
   const [topic, setTopic] = useState("");
   const [idea, setIdea] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPlatform, setFilterPlatform] = useState<string>("all");
+  const [filterSaved, setFilterSaved] = useState<string>("all");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -148,6 +153,37 @@ const Dashboard = () => {
     }
   };
 
+  const handleEdit = async (postId: string, newContent: string) => {
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .update({ content: newContent })
+        .eq("id", postId);
+
+      if (error) throw error;
+
+      setPosts(posts.map((p) => (p.id === postId ? { ...p, content: newContent } : p)));
+      toast.success("Post updated");
+    } catch (error: any) {
+      toast.error("Failed to update post");
+    }
+  };
+
+  // Filter and search posts
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch = post.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPlatform = filterPlatform === "all" || post.platform.toLowerCase() === filterPlatform;
+    const matchesSaved = filterSaved === "all" || (filterSaved === "saved" ? post.is_saved : !post.is_saved);
+    return matchesSearch && matchesPlatform && matchesSaved;
+  });
+
+  const stats = {
+    total: posts.length,
+    saved: posts.filter((p) => p.is_saved).length,
+    linkedin: posts.filter((p) => p.platform.toLowerCase() === "linkedin").length,
+    twitter: posts.filter((p) => p.platform.toLowerCase() === "twitter").length,
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -188,6 +224,54 @@ const Dashboard = () => {
           <p className="text-muted-foreground">
             AI-generated posts tailored to your preferences
           </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-gradient-card">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Posts</p>
+                  <p className="text-3xl font-bold">{stats.total}</p>
+                </div>
+                <FileText className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-card">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Saved</p>
+                  <p className="text-3xl font-bold">{stats.saved}</p>
+                </div>
+                <Bookmark className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-card">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">LinkedIn</p>
+                  <p className="text-3xl font-bold">{stats.linkedin}</p>
+                </div>
+                <Linkedin className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-card">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Twitter</p>
+                  <p className="text-3xl font-bold">{stats.twitter}</p>
+                </div>
+                <Twitter className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="mb-8 shadow-card border-2 bg-gradient-card">
@@ -246,6 +330,41 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Search and Filters */}
+        {posts.length > 0 && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search posts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Tabs value={filterPlatform} onValueChange={setFilterPlatform}>
+                    <TabsList>
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                      <TabsTrigger value="twitter">Twitter</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <Tabs value={filterSaved} onValueChange={setFilterSaved}>
+                    <TabsList>
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="saved">Saved</TabsTrigger>
+                      <TabsTrigger value="unsaved">Unsaved</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {posts.length === 0 ? (
           <div className="text-center py-16">
             <div className="p-4 bg-gradient-primary rounded-full inline-block mb-4">
@@ -256,14 +375,23 @@ const Dashboard = () => {
               Click the button above to generate your first AI-powered posts
             </p>
           </div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="text-center py-16">
+            <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-2xl font-semibold mb-2">No posts found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your filters or search query
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <PostCard
                 key={post.id}
                 post={post}
                 onSave={() => handleSave(post.id)}
                 onDelete={() => handleDelete(post.id)}
+                onEdit={(newContent) => handleEdit(post.id, newContent)}
               />
             ))}
           </div>
