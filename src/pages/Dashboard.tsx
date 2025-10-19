@@ -50,6 +50,7 @@ const Dashboard = () => {
   const [generatingIdeas, setGeneratingIdeas] = useState(false);
   const [suggestedIdeas, setSuggestedIdeas] = useState<Array<{ topic: string; ideas: string }>>([]);
   const [showIdeas, setShowIdeas] = useState(false);
+  const [ideaMode, setIdeaMode] = useState<string>("normal");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -230,7 +231,7 @@ const Dashboard = () => {
     setGeneratingIdeas(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-ideas", {
-        body: { profile },
+        body: { profile, mode: ideaMode },
       });
 
       if (error) throw error;
@@ -446,23 +447,40 @@ const Dashboard = () => {
                   </CardDescription>
                 </div>
               </div>
-              <Button
-                onClick={generateIdeasHandler}
-                disabled={generatingIdeas}
-                variant="outline"
-              >
-                {generatingIdeas ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate Ideas
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Select value={ideaMode} onValueChange={setIdeaMode}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">Normal Mode</SelectItem>
+                    <SelectItem value="story">Story Mode</SelectItem>
+                    <SelectItem value="tips">Tips Mode</SelectItem>
+                    <SelectItem value="fun">Fun Mode</SelectItem>
+                    <SelectItem value="question">Question Mode</SelectItem>
+                    <SelectItem value="list">List Mode</SelectItem>
+                    <SelectItem value="howto">How-to Mode</SelectItem>
+                    <SelectItem value="mythbust">Myth-busting Mode</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={generateIdeasHandler}
+                  disabled={generatingIdeas}
+                  variant="outline"
+                >
+                  {generatingIdeas ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate Ideas
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           {showIdeas && suggestedIdeas.length > 0 && (
