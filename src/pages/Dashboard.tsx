@@ -384,27 +384,28 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-primary rounded-xl">
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="p-1.5 sm:p-2 bg-gradient-primary rounded-xl flex-shrink-0">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                  AI Content Writer
+                </h1>
+                {profile && (
+                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block truncate">
+                    {profile.role} · {profile.industry}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                AI Content Writer
-              </h1>
-              {profile && (
-                <p className="text-sm text-muted-foreground">
-                  {profile.role} · {profile.industry}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+              <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Settings className="w-4 h-4" />
+                <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+                  <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -516,88 +517,89 @@ const Dashboard = () => {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
+            <Button variant="outline" onClick={handleLogout} className="h-8 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
+              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
+      </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Your Content Dashboard</h2>
-          <p className="text-muted-foreground">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Your Content Dashboard</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             AI-generated posts tailored to your preferences
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-8">
           <Card className="bg-gradient-card">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Posts</p>
-                  <p className="text-3xl font-bold">{stats.total}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total Posts</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.total}</p>
                 </div>
-                <FileText className="w-8 h-8 text-primary opacity-50" />
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Saved</p>
-                  <p className="text-3xl font-bold">{stats.saved}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Saved</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.saved}</p>
                 </div>
-                <Bookmark className="w-8 h-8 text-primary opacity-50" />
+                <Bookmark className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">LinkedIn</p>
-                  <p className="text-3xl font-bold">{stats.linkedin}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">LinkedIn</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.linkedin}</p>
                 </div>
-                <Linkedin className="w-8 h-8 text-primary opacity-50" />
+                <Linkedin className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Twitter</p>
-                  <p className="text-3xl font-bold">{stats.twitter}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Twitter</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.twitter}</p>
                 </div>
-                <Twitter className="w-8 h-8 text-primary opacity-50" />
+                <Twitter className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Find Inspiration Section */}
-        <Card className="mb-6 shadow-card border-2 bg-gradient-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-primary rounded-xl">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+        <Card className="mb-4 sm:mb-6 shadow-card border-2 bg-gradient-card">
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-gradient-primary rounded-xl flex-shrink-0">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                 </div>
-                <div>
-                  <CardTitle>Find Inspiration</CardTitle>
-                  <CardDescription>
+                <div className="min-w-0">
+                  <CardTitle className="text-base sm:text-lg">Find Inspiration</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
                     Get AI-powered topic ideas tailored to your profile
                   </CardDescription>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 sm:flex-shrink-0">
                 <Select value={ideaMode} onValueChange={setIdeaMode}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px] text-xs sm:text-sm h-9">
                     <SelectValue placeholder="Select mode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -615,16 +617,18 @@ const Dashboard = () => {
                   onClick={generateIdeasHandler}
                   disabled={generatingIdeas}
                   variant="outline"
+                  className="text-xs sm:text-sm h-9 px-3 sm:px-4 whitespace-nowrap"
                 >
                   {generatingIdeas ? (
                     <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Generating...
+                      <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 animate-spin" />
+                      <span className="hidden sm:inline">Generating...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate Ideas
+                      <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Generate Ideas</span>
+                      <span className="sm:hidden">Generate</span>
                     </>
                   )}
                 </Button>
@@ -656,55 +660,57 @@ const Dashboard = () => {
           )}
         </Card>
 
-        <Card className="mb-8 shadow-card border-2 bg-gradient-card">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-primary rounded-xl">
-                <Lightbulb className="w-5 h-5 text-primary-foreground" />
+        <Card className="mb-4 sm:mb-8 shadow-card border-2 bg-gradient-card">
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-primary rounded-xl flex-shrink-0">
+                <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
-              <div>
-                <CardTitle>What do you want to write about?</CardTitle>
-                <CardDescription>
+              <div className="min-w-0">
+                <CardTitle className="text-base sm:text-lg">What do you want to write about?</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Tell us your topic and ideas to generate tailored content
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="topic">Topic *</Label>
+          <CardContent className="space-y-3 sm:space-y-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="topic" className="text-xs sm:text-sm">Topic *</Label>
               <Input
                 id="topic"
-                placeholder="e.g., AI in healthcare, Remote work productivity, Digital marketing trends"
+                placeholder="e.g., AI in healthcare, Remote work productivity"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 disabled={generating}
+                className="text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="idea">Your Ideas (optional)</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="idea" className="text-xs sm:text-sm">Your Ideas (optional)</Label>
               <Textarea
                 id="idea"
-                placeholder="e.g., Share 3 key benefits, Include a personal experience, Focus on practical tips..."
+                placeholder="e.g., Share 3 key benefits, Include a personal experience..."
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 disabled={generating}
                 rows={3}
+                className="text-sm"
               />
             </div>
             <Button
               onClick={generatePosts}
               disabled={generating || !topic.trim()}
-              className="w-full bg-gradient-primary hover:opacity-90"
+              className="w-full bg-gradient-primary hover:opacity-90 h-9 sm:h-10 text-sm"
             >
               {generating ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" />
                   Generating posts...
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
                   Generate Posts
                 </>
               )}
@@ -714,17 +720,18 @@ const Dashboard = () => {
                 onClick={handleBatchGenerate}
                 disabled={generating || !topic.trim()}
                 variant="outline"
-                className="w-full"
+                className="w-full h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4"
               >
                 {generating ? (
                   <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Batch...
+                    <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                    <span className="hidden sm:inline">Batch...</span>
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Batch Generate (6x)
+                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Batch Generate (6x)</span>
+                    <span className="sm:hidden">Batch (6x)</span>
                   </>
                 )}
               </Button>
@@ -732,10 +739,11 @@ const Dashboard = () => {
                 onClick={() => handleExportPosts('json')}
                 disabled={filteredPosts.length === 0}
                 variant="outline"
-                className="w-full"
+                className="w-full h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4"
               >
-                <Download className="w-4 h-4 mr-2" />
-                Export JSON
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Export JSON</span>
+                <span className="sm:hidden">JSON</span>
               </Button>
             </div>
           </CardContent>
@@ -744,36 +752,36 @@ const Dashboard = () => {
         {/* Search and Filters */}
         {posts.length > 0 && (
           <>
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Card className="mb-4 sm:mb-6">
+              <CardContent className="pt-4 sm:pt-6">
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
                     <Input
                       placeholder="Search posts..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
+                      className="pl-9 sm:pl-10 text-sm h-9 sm:h-10"
                     />
                   </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <Tabs value={filterPlatform} onValueChange={setFilterPlatform}>
-                      <TabsList>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                        <TabsTrigger value="twitter">Twitter</TabsTrigger>
+                  <div className="flex gap-2 flex-wrap items-center">
+                    <Tabs value={filterPlatform} onValueChange={setFilterPlatform} className="w-full sm:w-auto">
+                      <TabsList className="w-full sm:w-auto h-9">
+                        <TabsTrigger value="all" className="text-xs sm:text-sm h-8 px-2.5 sm:px-3">All</TabsTrigger>
+                        <TabsTrigger value="linkedin" className="text-xs sm:text-sm h-8 px-2.5 sm:px-3">LinkedIn</TabsTrigger>
+                        <TabsTrigger value="twitter" className="text-xs sm:text-sm h-8 px-2.5 sm:px-3">Twitter</TabsTrigger>
                       </TabsList>
                     </Tabs>
-                    <Tabs value={filterSaved} onValueChange={setFilterSaved}>
-                      <TabsList>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="saved">Saved</TabsTrigger>
-                        <TabsTrigger value="unsaved">Unsaved</TabsTrigger>
+                    <Tabs value={filterSaved} onValueChange={setFilterSaved} className="w-full sm:w-auto">
+                      <TabsList className="w-full sm:w-auto h-9">
+                        <TabsTrigger value="all" className="text-xs sm:text-sm h-8 px-2.5 sm:px-3">All</TabsTrigger>
+                        <TabsTrigger value="saved" className="text-xs sm:text-sm h-8 px-2.5 sm:px-3">Saved</TabsTrigger>
+                        <TabsTrigger value="unsaved" className="text-xs sm:text-sm h-8 px-2.5 sm:px-3">Unsaved</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     <Select value={sortOrder} onValueChange={setSortOrder}>
-                      <SelectTrigger className="w-[140px]">
-                        <ArrowUpDown className="w-4 h-4 mr-2" />
+                      <SelectTrigger className="w-full sm:w-[140px] h-9 text-xs sm:text-sm">
+                        <ArrowUpDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -786,8 +794,9 @@ const Dashboard = () => {
                       disabled={filteredPosts.length === 0}
                       variant="outline"
                       size="sm"
+                      className="w-full sm:w-auto h-9 text-xs sm:text-sm"
                     >
-                      <Download className="w-4 h-4 mr-2" />
+                      <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       CSV
                     </Button>
                   </div>
@@ -796,43 +805,43 @@ const Dashboard = () => {
             </Card>
 
             {/* Analytics Card */}
-            <Card className="mb-6 bg-gradient-card">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-primary rounded-xl">
-                    <TrendingUp className="w-5 h-5 text-primary-foreground" />
+            <Card className="mb-4 sm:mb-6 bg-gradient-card">
+              <CardHeader className="pb-3 sm:pb-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-gradient-primary rounded-xl flex-shrink-0">
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <CardTitle>Content Insights</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Content Insights</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Your content performance at a glance
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{stats.saved}</p>
-                    <p className="text-xs text-muted-foreground">Saved Posts</p>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                  <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+                    <p className="text-xl sm:text-2xl font-bold text-primary">{stats.saved}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Saved Posts</p>
                   </div>
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">
+                  <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+                    <p className="text-xl sm:text-2xl font-bold text-primary">
                       {Math.round((stats.saved / stats.total) * 100)}%
                     </p>
-                    <p className="text-xs text-muted-foreground">Save Rate</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Save Rate</p>
                   </div>
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">
+                  <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+                    <p className="text-xl sm:text-2xl font-bold text-primary">
                       {Math.round((stats.linkedin / stats.total) * 100)}%
                     </p>
-                    <p className="text-xs text-muted-foreground">LinkedIn</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">LinkedIn</p>
                   </div>
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">
+                  <div className="text-center p-2 sm:p-3 bg-background/50 rounded-lg">
+                    <p className="text-xl sm:text-2xl font-bold text-primary">
                       {Math.round((stats.twitter / stats.total) * 100)}%
                     </p>
-                    <p className="text-xs text-muted-foreground">Twitter</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Twitter</p>
                   </div>
                 </div>
               </CardContent>
@@ -841,25 +850,25 @@ const Dashboard = () => {
         )}
 
         {posts.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="p-4 bg-gradient-primary rounded-full inline-block mb-4">
-              <Sparkles className="w-12 h-12 text-primary-foreground" />
+          <div className="text-center py-12 sm:py-16">
+            <div className="p-3 sm:p-4 bg-gradient-primary rounded-full inline-block mb-3 sm:mb-4">
+              <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">No posts yet</h3>
-            <p className="text-muted-foreground mb-6">
+            <h3 className="text-xl sm:text-2xl font-semibold mb-2">No posts yet</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 px-4">
               Click the button above to generate your first AI-powered posts
             </p>
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-16">
-            <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-2xl font-semibold mb-2">No posts found</h3>
-            <p className="text-muted-foreground">
+          <div className="text-center py-12 sm:py-16">
+            <Search className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+            <h3 className="text-xl sm:text-2xl font-semibold mb-2">No posts found</h3>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
               Try adjusting your filters or search query
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {filteredPosts.map((post) => (
               <PostCard
                 key={post.id}
