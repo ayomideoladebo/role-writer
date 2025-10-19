@@ -2,3 +2,6 @@ project_id = "nzmlobcqyvghxwayirsi"
 
 [functions.generate-posts]
 verify_jwt = true
+
+[functions.generate-ideas]
+verify_jwt = true

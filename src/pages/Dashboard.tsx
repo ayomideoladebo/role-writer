@@ -47,6 +47,9 @@ const Dashboard = () => {
     industry: "",
     tone_preference: "",
   });
+  const [generatingIdeas, setGeneratingIdeas] = useState(false);
+  const [suggestedIdeas, setSuggestedIdeas] = useState<Array<{ topic: string; ideas: string }>>([]);
+  const [showIdeas, setShowIdeas] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -221,6 +224,32 @@ const Dashboard = () => {
     } finally {
       setUpdatingProfile(false);
     }
+  };
+
+  const generateIdeasHandler = async () => {
+    setGeneratingIdeas(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-ideas", {
+        body: { profile },
+      });
+
+      if (error) throw error;
+
+      setSuggestedIdeas(data.ideas);
+      setShowIdeas(true);
+      toast.success("Ideas generated!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate ideas");
+    } finally {
+      setGeneratingIdeas(false);
+    }
+  };
+
+  const selectIdea = (selectedIdea: { topic: string; ideas: string }) => {
+    setTopic(selectedIdea.topic);
+    setIdea(selectedIdea.ideas);
+    setShowIdeas(false);
+    toast.success("Idea selected! Ready to generate posts.");
   };
 
   // Filter, search, and sort posts
@@ -401,6 +430,65 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Find Inspiration Section */}
+        <Card className="mb-6 shadow-card border-2 bg-gradient-card">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-primary rounded-xl">
+                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <CardTitle>Find Inspiration</CardTitle>
+                  <CardDescription>
+                    Get AI-powered topic ideas tailored to your profile
+                  </CardDescription>
+                </div>
+              </div>
+              <Button
+                onClick={generateIdeasHandler}
+                disabled={generatingIdeas}
+                variant="outline"
+              >
+                {generatingIdeas ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate Ideas
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          {showIdeas && suggestedIdeas.length > 0 && (
+            <CardContent>
+              <div className="grid gap-3">
+                {suggestedIdeas.map((suggestedIdea, index) => (
+                  <Card
+                    key={index}
+                    className="cursor-pointer hover:border-primary transition-all"
+                    onClick={() => selectIdea(suggestedIdea)}
+                  >
+                    <CardContent className="pt-4">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Badge variant="secondary">{index + 1}</Badge>
+                        {suggestedIdea.topic}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {suggestedIdea.ideas}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
 
         <Card className="mb-8 shadow-card border-2 bg-gradient-card">
           <CardHeader>
