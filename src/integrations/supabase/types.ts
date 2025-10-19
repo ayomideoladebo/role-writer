@@ -43,32 +43,44 @@ export type Database = {
       }
       profiles: {
         Row: {
+          content_goals: string | null
           created_at: string | null
           email: string | null
           id: string
           industry: string | null
+          interests: string | null
           onboarding_completed: boolean | null
+          posting_frequency: string | null
           role: string | null
+          target_audience: string | null
           tone_preference: string | null
           updated_at: string | null
         }
         Insert: {
+          content_goals?: string | null
           created_at?: string | null
           email?: string | null
           id: string
           industry?: string | null
+          interests?: string | null
           onboarding_completed?: boolean | null
+          posting_frequency?: string | null
           role?: string | null
+          target_audience?: string | null
           tone_preference?: string | null
           updated_at?: string | null
         }
         Update: {
+          content_goals?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           industry?: string | null
+          interests?: string | null
           onboarding_completed?: boolean | null
+          posting_frequency?: string | null
           role?: string | null
+          target_audience?: string | null
           tone_preference?: string | null
           updated_at?: string | null
         }

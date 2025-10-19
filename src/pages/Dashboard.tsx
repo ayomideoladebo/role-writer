@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter, Settings, ArrowUpDown } from "lucide-react";
+import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter, Settings, ArrowUpDown, Download, Zap, TrendingUp } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,6 +27,10 @@ interface Profile {
   industry: string;
   tone_preference: string;
   onboarding_completed: boolean;
+  interests?: string;
+  target_audience?: string;
+  content_goals?: string;
+  posting_frequency?: string;
 }
 
 const Dashboard = () => {
@@ -46,6 +50,10 @@ const Dashboard = () => {
     role: "",
     industry: "",
     tone_preference: "",
+    interests: "",
+    target_audience: "",
+    content_goals: "",
+    posting_frequency: "",
   });
   const [generatingIdeas, setGeneratingIdeas] = useState(false);
   const [suggestedIdeas, setSuggestedIdeas] = useState<Array<{ topic: string; ideas: string }>>([]);
@@ -81,6 +89,10 @@ const Dashboard = () => {
       role: profileData?.role || "",
       industry: profileData?.industry || "",
       tone_preference: profileData?.tone_preference || "",
+      interests: profileData?.interests || "",
+      target_audience: profileData?.target_audience || "",
+      content_goals: profileData?.content_goals || "",
+      posting_frequency: profileData?.posting_frequency || "",
     });
 
     // Fetch posts
@@ -207,6 +219,10 @@ const Dashboard = () => {
           role: profileForm.role,
           industry: profileForm.industry,
           tone_preference: profileForm.tone_preference,
+          interests: profileForm.interests,
+          target_audience: profileForm.target_audience,
+          content_goals: profileForm.content_goals,
+          posting_frequency: profileForm.posting_frequency,
         })
         .eq("id", user!.id);
 
@@ -217,6 +233,10 @@ const Dashboard = () => {
         role: profileForm.role,
         industry: profileForm.industry,
         tone_preference: profileForm.tone_preference,
+        interests: profileForm.interests,
+        target_audience: profileForm.target_audience,
+        content_goals: profileForm.content_goals,
+        posting_frequency: profileForm.posting_frequency,
       });
       setSettingsOpen(false);
       toast.success("Profile updated successfully");
@@ -224,6 +244,85 @@ const Dashboard = () => {
       toast.error("Failed to update profile");
     } finally {
       setUpdatingProfile(false);
+    }
+  };
+
+  const handleBatchGenerate = async () => {
+    if (!topic.trim()) {
+      toast.error("Please enter a topic for batch generation");
+      return;
+    }
+    
+    setGenerating(true);
+    try {
+      // Generate 3 batches
+      for (let i = 0; i < 3; i++) {
+        const { error } = await supabase.functions.invoke("generate-posts", {
+          body: { 
+            profile,
+            topic: topic.trim(),
+            idea: idea.trim() || undefined,
+          },
+        });
+        if (error) throw error;
+      }
+
+      toast.success("Batch generation complete! 6 new posts created.");
+      
+      setTopic("");
+      setIdea("");
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: postsData } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+
+      setPosts(postsData || []);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate batch posts");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleExportPosts = (format: 'csv' | 'json') => {
+    if (filteredPosts.length === 0) {
+      toast.error("No posts to export");
+      return;
+    }
+
+    if (format === 'json') {
+      const dataStr = JSON.stringify(filteredPosts, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `posts-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Posts exported as JSON");
+    } else {
+      const headers = ['Platform', 'Content', 'Saved', 'Created At'];
+      const csvContent = [
+        headers.join(','),
+        ...filteredPosts.map(post => [
+          post.platform,
+          `"${post.content.replace(/"/g, '""')}"`,
+          post.is_saved ? 'Yes' : 'No',
+          new Date(post.created_at).toLocaleDateString()
+        ].join(','))
+      ].join('\n');
+      
+      const dataBlob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `posts-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Posts exported as CSV");
     }
   };
 
@@ -348,6 +447,51 @@ const Dashboard = () => {
                         <SelectItem value="casual">Casual</SelectItem>
                         <SelectItem value="inspirational">Inspirational</SelectItem>
                         <SelectItem value="educational">Educational</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-interests">Interests & Expertise</Label>
+                    <Textarea
+                      id="settings-interests"
+                      placeholder="e.g., AI, Leadership, Innovation..."
+                      value={profileForm.interests}
+                      onChange={(e) => setProfileForm({ ...profileForm, interests: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-audience">Target Audience</Label>
+                    <Input
+                      id="settings-audience"
+                      placeholder="e.g., B2B executives, entrepreneurs"
+                      value={profileForm.target_audience}
+                      onChange={(e) => setProfileForm({ ...profileForm, target_audience: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-goals">Content Goals</Label>
+                    <Textarea
+                      id="settings-goals"
+                      placeholder="e.g., Build thought leadership, drive engagement..."
+                      value={profileForm.content_goals}
+                      onChange={(e) => setProfileForm({ ...profileForm, content_goals: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-frequency">Posting Frequency</Label>
+                    <Select
+                      value={profileForm.posting_frequency}
+                      onValueChange={(value) => setProfileForm({ ...profileForm, posting_frequency: value })}
+                    >
+                      <SelectTrigger id="settings-frequency">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">2-3 times per week</SelectItem>
+                        <SelectItem value="occasional">Occasional</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -561,52 +705,135 @@ const Dashboard = () => {
                 </>
               )}
             </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={handleBatchGenerate}
+                disabled={generating || !topic.trim()}
+                variant="outline"
+                className="w-full"
+              >
+                {generating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Batch...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Batch Generate (6x)
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => handleExportPosts('json')}
+                disabled={filteredPosts.length === 0}
+                variant="outline"
+                className="w-full"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export JSON
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
         {/* Search and Filters */}
         {posts.length > 0 && (
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+          <>
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="flex flex-col lg:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search posts..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <Tabs value={filterPlatform} onValueChange={setFilterPlatform}>
+                      <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
+                        <TabsTrigger value="twitter">Twitter</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <Tabs value={filterSaved} onValueChange={setFilterSaved}>
+                      <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="saved">Saved</TabsTrigger>
+                        <TabsTrigger value="unsaved">Unsaved</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                      <SelectTrigger className="w-[140px]">
+                        <ArrowUpDown className="w-4 h-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest First</SelectItem>
+                        <SelectItem value="oldest">Oldest First</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => handleExportPosts('csv')}
+                      disabled={filteredPosts.length === 0}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      CSV
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Tabs value={filterPlatform} onValueChange={setFilterPlatform}>
-                    <TabsList>
-                      <TabsTrigger value="all">All</TabsTrigger>
-                      <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-                      <TabsTrigger value="twitter">Twitter</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                  <Tabs value={filterSaved} onValueChange={setFilterSaved}>
-                    <TabsList>
-                      <TabsTrigger value="all">All</TabsTrigger>
-                      <TabsTrigger value="saved">Saved</TabsTrigger>
-                      <TabsTrigger value="unsaved">Unsaved</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                  <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[140px]">
-                      <ArrowUpDown className="w-4 h-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">Newest First</SelectItem>
-                      <SelectItem value="oldest">Oldest First</SelectItem>
-                    </SelectContent>
-                  </Select>
+              </CardContent>
+            </Card>
+
+            {/* Analytics Card */}
+            <Card className="mb-6 bg-gradient-card">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-primary rounded-xl">
+                    <TrendingUp className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <CardTitle>Content Insights</CardTitle>
+                    <CardDescription>
+                      Your content performance at a glance
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-background/50 rounded-lg">
+                    <p className="text-2xl font-bold text-primary">{stats.saved}</p>
+                    <p className="text-xs text-muted-foreground">Saved Posts</p>
+                  </div>
+                  <div className="text-center p-3 bg-background/50 rounded-lg">
+                    <p className="text-2xl font-bold text-primary">
+                      {Math.round((stats.saved / stats.total) * 100)}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">Save Rate</p>
+                  </div>
+                  <div className="text-center p-3 bg-background/50 rounded-lg">
+                    <p className="text-2xl font-bold text-primary">
+                      {Math.round((stats.linkedin / stats.total) * 100)}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">LinkedIn</p>
+                  </div>
+                  <div className="text-center p-3 bg-background/50 rounded-lg">
+                    <p className="text-2xl font-bold text-primary">
+                      {Math.round((stats.twitter / stats.total) * 100)}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">Twitter</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
 
         {posts.length === 0 ? (

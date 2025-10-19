@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X } from "lucide-react";
 import { toast } from "sonner";
+import { renderFormattedText } from "@/lib/markdown";
 
 interface PostCardProps {
   post: {
@@ -88,7 +89,10 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy }: PostCardProps) => 
         ) : (
           <>
             <div className="p-4 bg-background/50 rounded-lg border min-h-[150px]">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
+              <div 
+                className="whitespace-pre-wrap text-sm leading-relaxed"
+                dangerouslySetInnerHTML={renderFormattedText(post.content)}
+              />
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className={charCount > maxChars ? 'text-destructive' : 'text-muted-foreground'}>
