@@ -15,7 +15,7 @@ const Index = () => {
               <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              AI Content Writer
+              LinkTweet
             </h1>
           </div>
           <Button
@@ -35,7 +35,7 @@ const Index = () => {
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              AI Content Writer
+              LinkTweet
             </span>
           </h1>
           

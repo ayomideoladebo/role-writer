@@ -54,7 +54,7 @@ const Auth = () => {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            AI Content Writer
+            LinkTweet
           </CardTitle>
           <CardDescription className="text-base">
             {isLogin ? "Welcome back! Sign in to continue" : "Create your account to get started"}
