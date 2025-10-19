@@ -407,14 +407,14 @@ const Dashboard = () => {
                   <Settings className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Profile Settings</DialogTitle>
                   <DialogDescription>
                     Update your profile preferences to generate better content
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 mt-4">
+                <div className="space-y-4 mt-4 pr-2">
                   <div className="space-y-2">
                     <Label htmlFor="settings-role">Role</Label>
                     <Input
@@ -458,6 +458,7 @@ const Dashboard = () => {
                       value={profileForm.interests}
                       onChange={(e) => setProfileForm({ ...profileForm, interests: e.target.value })}
                       rows={2}
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -477,6 +478,7 @@ const Dashboard = () => {
                       value={profileForm.content_goals}
                       onChange={(e) => setProfileForm({ ...profileForm, content_goals: e.target.value })}
                       rows={2}
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -495,20 +497,22 @@ const Dashboard = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button
-                    onClick={handleUpdateProfile}
-                    disabled={updatingProfile}
-                    className="w-full"
-                  >
-                    {updatingProfile ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      "Save Changes"
-                    )}
-                  </Button>
+                  <div className="pt-4 border-t">
+                    <Button
+                      onClick={handleUpdateProfile}
+                      disabled={updatingProfile}
+                      className="w-full"
+                    >
+                      {updatingProfile ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
