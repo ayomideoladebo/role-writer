@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X } from "lucide-react";
+import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { renderFormattedText } from "@/lib/markdown";
 
@@ -19,9 +19,11 @@ interface PostCardProps {
   onDelete: () => void;
   onEdit: (newContent: string) => void;
   onCopy: () => void;
+  onGenerateImage: () => void;
+  generatingImage?: boolean;
 }
 
-const PostCard = ({ post, onSave, onDelete, onEdit, onCopy }: PostCardProps) => {
+const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, generatingImage }: PostCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
   const [copying, setCopying] = useState(false);
@@ -109,7 +111,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy }: PostCardProps) => 
                 {charCount} / {maxChars} characters
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:flex gap-2">
+            <div className="grid grid-cols-2 sm:flex gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
@@ -132,6 +134,18 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy }: PostCardProps) => 
                   className={`w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 ${post.is_saved ? "fill-primary text-primary" : ""}`}
                 />
                 <span className="hidden sm:inline">{post.is_saved ? "Saved" : "Save"}</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onGenerateImage}
+                disabled={generatingImage || !!post.image_url}
+                className="hover:border-primary text-xs h-8"
+              >
+                <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  {generatingImage ? "Generating..." : post.image_url ? "Has Image" : "Add Image"}
+                </span>
               </Button>
               <Button
                 variant="outline"

@@ -64,6 +64,7 @@ const Dashboard = () => {
   const [suggestedIdeas, setSuggestedIdeas] = useState<Array<{ topic: string; ideas: string }>>([]);
   const [showIdeas, setShowIdeas] = useState(false);
   const [ideaMode, setIdeaMode] = useState<string>("normal");
+  const [generatingImageForPost, setGeneratingImageForPost] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -398,6 +399,49 @@ const Dashboard = () => {
     setIdea(selectedIdea.ideas);
     setShowIdeas(false);
     toast.success("Idea selected! Ready to generate posts.");
+  };
+
+  const handleGenerateImage = async (postId: string) => {
+    try {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      setGeneratingImageForPost(postId);
+
+      // Determine post type from content
+      let postType = 'story';
+      const contentLower = post.content.toLowerCase();
+      if (contentLower.includes('tip') || contentLower.includes('tips') || 
+          contentLower.includes('how to') || contentLower.includes('guide')) {
+        postType = 'tips';
+      }
+
+      const { data, error } = await supabase.functions.invoke("generate-post-image", {
+        body: {
+          postContent: post.content,
+          postType: postType,
+          avatarUrl: profile?.avatar_url || null
+        },
+      });
+
+      if (error) throw error;
+
+      // Update post with image URL
+      const { error: updateError } = await supabase
+        .from("posts")
+        .update({ image_url: data.imageUrl })
+        .eq("id", postId);
+
+      if (updateError) throw updateError;
+
+      setPosts(posts.map(p => p.id === postId ? { ...p, image_url: data.imageUrl } : p));
+      toast.success("Image generated successfully!");
+    } catch (error: any) {
+      console.error("Error generating image:", error);
+      toast.error(error.message || "Failed to generate image");
+    } finally {
+      setGeneratingImageForPost(null);
+    }
   };
 
   // Filter, search, and sort posts
@@ -970,6 +1014,8 @@ const Dashboard = () => {
                 onDelete={() => handleDelete(post.id)}
                 onEdit={(newContent) => handleEdit(post.id, newContent)}
                 onCopy={() => handleCopy(post.content)}
+                onGenerateImage={() => handleGenerateImage(post.id)}
+                generatingImage={generatingImageForPost === post.id}
               />
             ))}
           </div>

@@ -95,43 +95,6 @@ Create authentic, value-driven content that sounds natural and human. Avoid buzz
 
       console.log(`Generated ${plat} post:`, content);
 
-      // Determine post type from content
-      let postType = 'story'; // default
-      const contentLower = content.toLowerCase();
-      if (contentLower.includes('tip') || contentLower.includes('tips') || 
-          contentLower.includes('how to') || contentLower.includes('guide')) {
-        postType = 'tips';
-      }
-
-      // Generate image for the post
-      let imageUrl = null;
-      try {
-        console.log(`Generating image for ${plat} post (type: ${postType})...`);
-        const imageResponse = await fetch(`${supabaseUrl}/functions/v1/generate-post-image`, {
-          method: "POST",
-          headers: {
-            "Authorization": authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            postContent: content,
-            postType: postType,
-            avatarUrl: profile?.avatar_url || null
-          }),
-        });
-
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          imageUrl = imageData.imageUrl;
-          console.log(`Image generated successfully for ${plat} post`);
-        } else {
-          console.warn(`Failed to generate image for ${plat} post:`, imageResponse.status);
-        }
-      } catch (imageError) {
-        console.error(`Error generating image for ${plat} post:`, imageError);
-        // Continue without image if generation fails
-      }
-
       // Store in database
       const { error: insertError } = await supabase
         .from("posts")
@@ -140,7 +103,6 @@ Create authentic, value-driven content that sounds natural and human. Avoid buzz
           platform: plat,
           content: content,
           is_saved: false,
-          image_url: imageUrl,
         });
 
       if (insertError) {
