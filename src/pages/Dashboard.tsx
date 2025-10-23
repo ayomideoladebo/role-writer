@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter, Settings, ArrowUpDown, Download, Zap, TrendingUp } from "lucide-react";
+import { Sparkles, LogOut, RefreshCw, Lightbulb, Search, FileText, Bookmark, Linkedin, Twitter, Settings, ArrowUpDown, Download, Zap, TrendingUp, Upload, User } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Post {
   id: string;
@@ -20,6 +21,7 @@ interface Post {
   content: string;
   is_saved: boolean;
   created_at: string;
+  image_url?: string | null;
 }
 
 interface Profile {
@@ -31,6 +33,7 @@ interface Profile {
   target_audience?: string;
   content_goals?: string;
   posting_frequency?: string;
+  avatar_url?: string | null;
 }
 
 const Dashboard = () => {
@@ -54,7 +57,9 @@ const Dashboard = () => {
     target_audience: "",
     content_goals: "",
     posting_frequency: "",
+    avatar_url: null as string | null,
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [generatingIdeas, setGeneratingIdeas] = useState(false);
   const [suggestedIdeas, setSuggestedIdeas] = useState<Array<{ topic: string; ideas: string }>>([]);
   const [showIdeas, setShowIdeas] = useState(false);
@@ -93,6 +98,7 @@ const Dashboard = () => {
       target_audience: profileData?.target_audience || "",
       content_goals: profileData?.content_goals || "",
       posting_frequency: profileData?.posting_frequency || "",
+      avatar_url: profileData?.avatar_url || null,
     });
 
     // Fetch posts
@@ -206,6 +212,48 @@ const Dashboard = () => {
       toast.success("Copied to clipboard!");
     } catch (error) {
       toast.error("Failed to copy");
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
+        return;
+      }
+
+      setUploadingAvatar(true);
+      const fileExt = file.name.split('.').pop();
+      const { data: { user } } = await supabase.auth.getUser();
+      const fileName = `${user?.id}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user?.id);
+
+      if (updateError) throw updateError;
+
+      setProfileForm({ ...profileForm, avatar_url: publicUrl });
+      setProfile({ ...profile!, avatar_url: publicUrl });
+      toast.success('Profile picture updated');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -416,6 +464,51 @@ const Dashboard = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 mt-4 pr-2">
+                  <div className="space-y-2">
+                    <Label>Profile Picture</Label>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-20 h-20">
+                        <AvatarImage src={profileForm.avatar_url || undefined} alt="Profile" />
+                        <AvatarFallback className="bg-primary/10">
+                          <User className="w-8 h-8 text-primary" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <Input
+                          id="avatar-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          disabled={uploadingAvatar}
+                          className="hidden"
+                        />
+                        <Label htmlFor="avatar-upload">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="cursor-pointer w-full"
+                            disabled={uploadingAvatar}
+                            onClick={() => document.getElementById('avatar-upload')?.click()}
+                          >
+                            {uploadingAvatar ? (
+                              <>
+                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 mr-2" />
+                                Upload Picture
+                              </>
+                            )}
+                          </Button>
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Used for generating personalized post images
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="settings-role">Role</Label>
                     <Input

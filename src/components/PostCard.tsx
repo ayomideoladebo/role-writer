@@ -13,6 +13,7 @@ interface PostCardProps {
     content: string;
     is_saved: boolean;
     created_at: string;
+    image_url?: string | null;
   };
   onSave: () => void;
   onDelete: () => void;
@@ -88,6 +89,15 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy }: PostCardProps) => 
           </>
         ) : (
           <>
+            {post.image_url && (
+              <div className="mb-3 sm:mb-4">
+                <img 
+                  src={post.image_url} 
+                  alt="Post image" 
+                  className="w-full rounded-lg border object-cover max-h-[300px]"
+                />
+              </div>
+            )}
             <div className="p-3 sm:p-4 bg-background/50 rounded-lg border min-h-[120px] sm:min-h-[150px]">
               <div 
                 className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed"

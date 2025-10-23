@@ -19,6 +19,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          image_url: string | null
           is_saved: boolean | null
           platform: string
           user_id: string
@@ -27,6 +28,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_saved?: boolean | null
           platform: string
           user_id: string
@@ -35,6 +37,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_saved?: boolean | null
           platform?: string
           user_id?: string
@@ -43,6 +46,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           content_goals: string | null
           created_at: string | null
           email: string | null
@@ -57,6 +61,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           content_goals?: string | null
           created_at?: string | null
           email?: string | null
@@ -71,6 +76,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           content_goals?: string | null
           created_at?: string | null
           email?: string | null
