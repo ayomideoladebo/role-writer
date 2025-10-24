@@ -72,7 +72,7 @@ Create authentic, value-driven content that sounds natural and human. Avoid buzz
       }
       
       if (plat === "linkedin") {
-        prompt += "\n\nFormat: Write a 150-200 word LinkedIn post that provides value, insights, or thought leadership. Use 2-3 relevant hashtags. Make it engaging and professional.";
+        prompt += "\n\nFormat: Write a 2000 - 3000 characters LinkedIn post that provides value, insights, or thought leadership. Use 2-3 relevant hashtags. Make it engaging and professional.";
       } else {
         prompt += "\n\nFormat: Write a concise, impactful Twitter post (max 280 characters) that sparks engagement. Include 1-2 relevant hashtags.";
       }

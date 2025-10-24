@@ -45,7 +45,7 @@ const Index = () => {
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                 Create Engaging
                 <span className="block mt-2 bg-primary bg-clip-text text-transparent">
-                  Social Content
+                  Twitter & Linkedin
                 </span>
                 <span className="block mt-2">In Seconds</span>
               </h1>
@@ -101,10 +101,10 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 max-w-5xl mx-auto">
             {[
-              { icon: Users, label: "Active Users", value: "10K+" },
-              { icon: Sparkles, label: "Posts Generated", value: "500K+" },
-              { icon: TrendingUp, label: "Engagement Rate", value: "85%" },
-              { icon: BarChart3, label: "Time Saved", value: "1000+ hrs" },
+              { icon: Users, label: "Active Users", value: "1K+" },
+              { icon: Sparkles, label: "Posts Generated", value: "50+" },
+              { icon: TrendingUp, label: "Engagement Rate", value: "92%" },
+              { icon: BarChart3, label: "Time Saved", value: "100+ hrs" },
             ].map((stat, index) => (
               <div key={index} className="text-center space-y-1 sm:space-y-2 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-primary" />
@@ -203,11 +203,11 @@ const Index = () => {
               <div className="absolute inset-0 bg-grid-white/10" />
               <div className="relative z-10 space-y-4 sm:space-y-6">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-foreground">
-                  Ready to Transform Your
-                  <span className="block mt-2">Social Media Game?</span>
+                  Ready to Level Up
+                  <span className="block mt-2">Your Linkedin</span>
                 </h2>
                 <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 max-w-2xl mx-auto">
-                  Join thousands of content creators who save hours every week with AI-powered content generation
+                  Join thousands of professionals who save hours every week with AI-powered content generation
                 </p>
                 <div className="pt-4">
                   <Button
