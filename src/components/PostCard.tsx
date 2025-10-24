@@ -15,11 +15,11 @@ interface PostCardProps {
     created_at: string;
     image_url?: string | null;
   };
-  onSave: () => void;
-  onDelete: () => void;
-  onEdit: (newContent: string) => void;
-  onCopy: () => void;
-  onGenerateImage: () => void;
+  onSave: (postId: string) => void;
+  onDelete: (postId: string) => void;
+  onEdit: (postId: string, newContent: string) => void;
+  onCopy: (content: string) => void;
+  onGenerateImage: (postId: string) => void;
   generatingImage?: boolean;
 }
 
@@ -31,7 +31,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, gen
   const handleCopy = async () => {
     setCopying(true);
     try {
-      onCopy();
+      onCopy(post.content);
     } finally {
       setTimeout(() => setCopying(false), 1000);
     }
@@ -42,7 +42,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, gen
 
   const handleSaveEdit = () => {
     if (editedContent.trim() !== post.content) {
-      onEdit(editedContent.trim());
+      onEdit(post.id, editedContent.trim());
     }
     setIsEditing(false);
   };
@@ -125,7 +125,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, gen
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onSave}
+                onClick={() => onSave(post.id)}
                 className={`hover:border-primary text-xs h-8 ${
                   post.is_saved ? "bg-primary/10 border-primary" : ""
                 }`}
@@ -138,7 +138,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, gen
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onGenerateImage}
+                onClick={() => onGenerateImage(post.id)}
                 disabled={generatingImage || !!post.image_url}
                 className="hover:border-primary text-xs h-8"
               >
@@ -159,7 +159,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, gen
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onDelete}
+                onClick={() => onDelete(post.id)}
                 className="hover:border-destructive text-destructive text-xs h-8"
               >
                 <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
