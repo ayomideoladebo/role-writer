@@ -34,6 +34,7 @@ interface Profile {
   content_goals?: string;
   posting_frequency?: string;
   avatar_url?: string | null;
+  credits: number;
 }
 
 const Dashboard = () => {
@@ -136,19 +137,29 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      toast.success("New posts generated!");
+      toast.success("New posts generated! 20 credits deducted.");
       
       // Clear inputs
       setTopic("");
       setIdea("");
       
-      // Refresh posts
+      // Refresh posts and profile to update credits
       const { data: { user } } = await supabase.auth.getUser();
       const { data: postsData } = await supabase
         .from("posts")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("id", user!.id)
+        .single();
+
+      if (profileData && profile) {
+        setProfile({ ...profile, credits: profileData.credits });
+      }
 
       setPosts(postsData || []);
     } catch (error: any) {
@@ -316,7 +327,7 @@ const Dashboard = () => {
         if (error) throw error;
       }
 
-      toast.success("Batch generation complete! 6 new posts created.");
+      toast.success("Batch generation complete! 6 new posts created. 60 credits deducted.");
       
       setTopic("");
       setIdea("");
@@ -327,6 +338,16 @@ const Dashboard = () => {
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("id", user!.id)
+        .single();
+
+      if (profileData && profile) {
+        setProfile({ ...profile, credits: profileData.credits });
+      }
 
       setPosts(postsData || []);
     } catch (error: any) {
@@ -403,6 +424,11 @@ const Dashboard = () => {
 
   const handleGenerateImage = async (postId: string) => {
     try {
+      if (!profile || profile.credits < 5) {
+        toast.error("Insufficient credits. You need 5 credits to generate an image. Please top up!");
+        return;
+      }
+
       const post = posts.find(p => p.id === postId);
       if (!post) return;
 
@@ -434,8 +460,19 @@ const Dashboard = () => {
 
       if (updateError) throw updateError;
 
+      // Deduct 5 credits
+      const { data: { user } } = await supabase.auth.getUser();
+      const newCredits = profile.credits - 5;
+      const { error: creditsError } = await supabase
+        .from("profiles")
+        .update({ credits: newCredits })
+        .eq("id", user?.id);
+
+      if (creditsError) throw creditsError;
+
+      setProfile({ ...profile, credits: newCredits });
       setPosts(posts.map(p => p.id === postId ? { ...p, image_url: data.imageUrl } : p));
-      toast.success("Image generated successfully!");
+      toast.success("Image generated successfully! 5 credits deducted.");
     } catch (error: any) {
       console.error("Error generating image:", error);
       toast.error(error.message || "Failed to generate image");
@@ -493,7 +530,20 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
-            <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+            <div className="flex gap-1 sm:gap-2 flex-shrink-0 items-center">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
+                <Zap className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold text-primary">{profile?.credits || 0}</span>
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                className="hidden sm:flex h-8 sm:h-9 text-xs bg-gradient-primary"
+                onClick={() => toast.info("Top-up feature coming soon! Contact support to add credits.")}
+              >
+                <Zap className="w-3.5 h-3.5 mr-1.5" />
+                Top Up
+              </Button>
               <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
@@ -672,7 +722,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-8">
           <Card className="bg-gradient-card">
             <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
               <div className="flex items-center justify-between">
@@ -717,7 +767,45 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+          <Card className="bg-gradient-card border-primary/20">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Credits</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary">{profile?.credits || 0}</p>
+                </div>
+                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Credits Info Banner */}
+        <Card className="mb-4 sm:mb-6 bg-primary/5 border-primary/20">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold mb-1">Credit Pricing</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Generate posts: <span className="font-semibold text-primary">10 credits</span> per platform · 
+                  Generate images: <span className="font-semibold text-primary">5 credits</span> each
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => toast.info("Top-up feature coming soon! Contact support to add credits.")}
+                >
+                  <Zap className="w-3.5 h-3.5 mr-1.5" />
+                  Top Up Credits
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Find Inspiration Section */}
         <Card className="mb-4 sm:mb-6 shadow-card border-2 bg-gradient-card">

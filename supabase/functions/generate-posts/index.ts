@@ -36,6 +36,22 @@ serve(async (req) => {
     console.log("Topic:", topic);
     console.log("Idea:", idea);
 
+    // Check user credits
+    const { data: userProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("credits")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !userProfile) {
+      throw new Error("Could not fetch user profile");
+    }
+
+    const creditsNeeded = regenerate ? 10 : 20; // 10 per post, 2 posts if not regenerating
+    if (userProfile.credits < creditsNeeded) {
+      throw new Error(`Insufficient credits. You need ${creditsNeeded} credits but only have ${userProfile.credits}. Please top up your credits.`);
+    }
+
     // Generate posts based on profile and user input
     const systemPrompt = `You are an expert social media content writer. Generate engaging, professional posts based on the user's profile and their specific topic.
 
@@ -111,6 +127,16 @@ Create authentic, value-driven content that sounds natural and human. Avoid buzz
       }
 
       generatedPosts.push({ platform: plat, content });
+    }
+
+    // Deduct credits after successful generation
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ credits: userProfile.credits - creditsNeeded })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Error updating credits:", updateError);
     }
 
     return new Response(

@@ -26,19 +26,61 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Determine the image prompt based on post type
+    // Creative camera angles and styles
+    const cameraAngles = ['over-the-shoulder shot', 'side profile', 'three-quarter view', 'slightly elevated angle', 'eye-level perspective'];
+    const styles = ['cinematic lighting with warm tones', 'bright natural window light', 'golden hour aesthetic', 'modern minimalist', 'magazine editorial style'];
+    const randomAngle = cameraAngles[Math.floor(Math.random() * cameraAngles.length)];
+    const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+
+    // Determine the image prompt and content based on post type
     let imagePrompt = '';
+    let requestBody: any = {
+      model: 'google/gemini-2.5-flash-image-preview',
+      modalities: ['image', 'text']
+    };
     
     if (postType === 'story' && avatarUrl) {
-      // For story posts with avatar, generate workspace image
-      imagePrompt = `Create a professional, high-quality image of a person working at a clean, modern workspace. The scene should show a simple setup with a laptop on a wooden or white desk, good natural lighting, and a minimalist aesthetic. The person should appear focused and professional. Style: realistic, warm lighting, shallow depth of field. Ultra high resolution.`;
+      // For story posts with avatar, edit the user's image into a workspace scene
+      imagePrompt = `Transform this person's photo into a professional workspace scene. Place them working at a clean, modern desk with a laptop. Use ${randomAngle} camera angle and ${randomStyle}. The scene should show focused work, with good composition and professional aesthetic. Keep their face and likeness intact. Background: minimal workspace with natural lighting. Ultra high quality, photorealistic.`;
+      
+      requestBody.messages = [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: imagePrompt
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: avatarUrl
+              }
+            }
+          ]
+        }
+      ];
     } else if (postType === 'tips') {
       // For tips posts, generate illustrative/flyer-style image
       const contentSnippet = postContent.slice(0, 200);
-      imagePrompt = `Create a modern, eye-catching social media flyer design that illustrates this content: "${contentSnippet}". Use bold typography, clean layout, professional color scheme, and simple icons or illustrations. Style: flat design, modern, minimalist. Ultra high resolution.`;
+      imagePrompt = `Create a modern, eye-catching social media flyer that illustrates: "${contentSnippet}". Use bold typography, clean layout, vibrant professional colors, and simple illustrations. Style: contemporary graphic design, flat design elements, minimalist. Camera angle: straight-on presentation view. Ultra high resolution, social media optimized.`;
+      
+      requestBody.messages = [
+        {
+          role: 'user',
+          content: imagePrompt
+        }
+      ];
     } else {
-      // Default professional image
-      imagePrompt = `Create a clean, modern professional image suitable for a LinkedIn or Twitter post. Use abstract shapes, gradients, or minimal geometric patterns with a professional color palette. Style: modern, clean, professional. Ultra high resolution.`;
+      // Default professional image with creativity
+      imagePrompt = `Create a striking professional image for a social media post. Use ${randomAngle} and ${randomStyle}. Incorporate abstract shapes, smooth gradients, or minimal geometric patterns with a sophisticated color palette. Style: modern, bold, eye-catching. Ultra high resolution.`;
+      
+      requestBody.messages = [
+        {
+          role: 'user',
+          content: imagePrompt
+        }
+      ];
     }
 
     console.log('Generating image with prompt:', imagePrompt);
@@ -49,16 +91,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: imagePrompt
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
