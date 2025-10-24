@@ -145,7 +145,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
       <Card className="shadow-card border-2 bg-gradient-card">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-primary rounded-xl">
+            <div className="p-2 bg-primary rounded-xl">
               <Lightbulb className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
@@ -181,7 +181,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           <Button
             onClick={generatePosts}
             disabled={generating || !topic.trim()}
-            className="w-full bg-gradient-primary hover:opacity-90"
+            className="w-full bg-primary hover:opacity-90"
           >
             {generating ? (
               <>

@@ -234,16 +234,16 @@ const Dashboard = () => {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <header className="border-b bg-[#0a0c1a] sticky top-0 z-10">
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <SidebarTrigger />
-                  <div className="p-2 bg-gradient-primary rounded-xl">
+                  {/* <SidebarTrigger />
+                  <div className="p-2 bg-primary rounded-xl">
                     <Sparkles className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    <h1 className="text-xl font-bold bg-primary bg-clip-text text-transparent">
                       LinkTweet
                     </h1>
                     {profile && (
@@ -251,7 +251,7 @@ const Dashboard = () => {
                         {profile.role} · {profile.industry}
                       </p>
                     )}
-                  </div>
+                  </div> */}
                 </div>
                 <div className="flex gap-2 items-center">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
@@ -261,7 +261,7 @@ const Dashboard = () => {
                   <Button
                     variant="default"
                     size="sm"
-                    className="bg-gradient-primary"
+                    className="bg-primary"
                     onClick={() => toast.info("Top-up feature coming soon! Contact support to add credits.")}
                   >
                     <Zap className="w-3.5 h-3.5 mr-1.5" />

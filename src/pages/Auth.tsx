@@ -24,13 +24,13 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        navigate("/dashboard/insights");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/dashboard/insights`,
           },
         });
         if (error) throw error;
@@ -49,11 +49,11 @@ const Auth = () => {
       <Card className="w-full max-w-md shadow-hover border-2">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-primary rounded-2xl">
+            <div className="p-3 bg-primary rounded-2xl">
               <Sparkles className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold bg-primary bg-clip-text text-transparent">
             LinkTweet
           </CardTitle>
           <CardDescription className="text-base">
@@ -85,7 +85,7 @@ const Auth = () => {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90 transition-opacity" disabled={loading}>
+            <Button type="submit" className="w-full bg-primary hover:opacity-90 transition-opacity" disabled={loading}>
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>

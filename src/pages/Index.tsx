@@ -6,15 +6,15 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen  ">
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-gradient-primary rounded-lg sm:rounded-xl">
+            <div className="p-1.5 sm:p-2 bg-primary rounded-lg sm:rounded-xl">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-lg sm:text-xl font-bold bg-primary bg-clip-text text-transparent">
               LinkTweet
             </h1>
           </div>
@@ -44,7 +44,7 @@ const Index = () => {
               {/* Main Heading */}
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                 Create Engaging
-                <span className="block mt-2 bg-gradient-primary bg-clip-text text-transparent">
+                <span className="block mt-2 bg-primary bg-clip-text text-transparent">
                   Social Content
                 </span>
                 <span className="block mt-2">In Seconds</span>
@@ -61,7 +61,7 @@ const Index = () => {
                 <Button
                   onClick={() => navigate("/auth")}
                   size="lg"
-                  className="w-full sm:w-auto bg-gradient-primary hover:opacity-90 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-hover group"
+                  className="w-full sm:w-auto bg-primary hover:opacity-90 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-hover group"
                 >
                   Get Started Free
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
@@ -124,7 +124,7 @@ const Index = () => {
             <div className="text-center mb-10 sm:mb-16 space-y-3 sm:space-y-4">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
                 Everything You Need to
-                <span className="block mt-2 bg-gradient-primary bg-clip-text text-transparent">
+                <span className="block mt-2 bg-primary bg-clip-text text-transparent">
                   Grow Your Presence
                 </span>
               </h2>
@@ -180,7 +180,7 @@ const Index = () => {
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                   <div className="relative z-10">
-                    <div className="p-3 bg-gradient-primary rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <div className="p-3 bg-primary rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
                       <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">{feature.title}</h3>
@@ -232,7 +232,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="font-semibold bg-gradient-primary bg-clip-text text-transparent">LinkTweet</span>
+              <span className="font-semibold bg-primary bg-clip-text text-transparent">LinkTweet</span>
               <span>© 2025 All rights reserved</span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">

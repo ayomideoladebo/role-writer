@@ -73,7 +73,7 @@ export default function Inspiration({ profile }: InspirationProps) {
         <CardHeader>
           <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-primary rounded-xl">
+              <div className="p-2 bg-primary rounded-xl">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
@@ -102,7 +102,7 @@ export default function Inspiration({ profile }: InspirationProps) {
               <Button
                 onClick={generateIdeasHandler}
                 disabled={generatingIdeas}
-                className="bg-gradient-primary hover:opacity-90"
+                className="bg-primary hover:opacity-90"
               >
                 {generatingIdeas ? (
                   <>

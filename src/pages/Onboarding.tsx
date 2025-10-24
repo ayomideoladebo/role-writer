@@ -73,7 +73,7 @@ const Onboarding = () => {
       if (error) throw error;
 
       toast.success("Profile set up successfully!");
-      navigate("/dashboard");
+      navigate("/dashboard/insights");
     } catch (error: any) {
       toast.error(error.message || "Failed to save profile");
     } finally {
@@ -86,7 +86,7 @@ const Onboarding = () => {
       <Card className="w-full max-w-2xl shadow-hover border-2">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-primary rounded-2xl">
+            <div className="p-3 bg-primary rounded-2xl">
               <Briefcase className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
@@ -139,7 +139,7 @@ const Onboarding = () => {
               <Button
                 onClick={() => setStep(2)}
                 disabled={!role || !industry}
-                className="w-full bg-gradient-primary hover:opacity-90"
+                className="w-full bg-primary hover:opacity-90"
               >
                 Continue <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -175,7 +175,7 @@ const Onboarding = () => {
                 <Button
                   onClick={handleComplete}
                   disabled={!tone || loading}
-                  className="flex-1 bg-gradient-primary hover:opacity-90"
+                  className="flex-1 bg-primary hover:opacity-90"
                 >
                   {loading ? "Setting up..." : "Complete Setup"}
                 </Button>
