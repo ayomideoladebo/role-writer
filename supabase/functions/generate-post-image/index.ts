@@ -27,8 +27,8 @@ serve(async (req) => {
     }
 
     // Creative camera angles and styles
-    const cameraAngles = ['over-the-shoulder shot', 'side profile', 'three-quarter view', 'slightly elevated angle', 'eye-level perspective'];
-    const styles = ['cinematic lighting with warm tones', 'bright natural window light', 'golden hour aesthetic', 'modern minimalist', 'magazine editorial style'];
+    const cameraAngles = ['over-the-shoulder shot', 'side profile', 'realistic phone camera shoot style', 'slightly elevated angle', 'eye-level perspective'];
+    const styles = ['realistic cinematic lighting with warm tones', ' realistic bright natural window light', 'realistic modern minimalist'];
     const randomAngle = cameraAngles[Math.floor(Math.random() * cameraAngles.length)];
     const randomStyle = styles[Math.floor(Math.random() * styles.length)];
 
@@ -41,7 +41,7 @@ serve(async (req) => {
     
     if (postType === 'story' && avatarUrl) {
       // For story posts with avatar, edit the user's image into a workspace scene
-      imagePrompt = `Transform this person's photo into a professional workspace scene. Place them working at a clean, modern desk with a laptop. Use ${randomAngle} camera angle and ${randomStyle}. The scene should show focused work, with good composition and professional aesthetic. Keep their face and likeness intact. Background: minimal workspace with natural lighting. Ultra high quality, photorealistic.`;
+      imagePrompt = `Transform this person's photo into a professional workspace realistic scene. Place them working at a clean, modern desk with a laptop. Use ${randomAngle} camera angle and ${randomStyle}. The scene should show focused work, with good composition and looking very realistic. Keep their face details and likeness intact. Background: minimal workspace with natural lighting. Ultra high quality, iphone camera shoot.`;
       
       requestBody.messages = [
         {
