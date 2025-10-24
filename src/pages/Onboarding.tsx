@@ -73,7 +73,7 @@ const Onboarding = () => {
       if (error) throw error;
 
       toast.success("Profile set up successfully!");
-      navigate("/dashboard/insights");
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Failed to save profile");
     } finally {
