@@ -245,11 +245,11 @@ const Dashboard = () => {
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  {/* <SidebarTrigger />
+                  <SidebarTrigger className="lg:hidden" />
                   <div className="p-2 bg-primary rounded-xl">
                     <Sparkles className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <div>
+                  <div className="hidden sm:block">
                     <h1 className="text-xl font-bold bg-primary bg-clip-text text-transparent">
                       LinkTweet
                     </h1>
@@ -258,7 +258,7 @@ const Dashboard = () => {
                         {profile.role} · {profile.industry}
                       </p>
                     )}
-                  </div> */}
+                  </div>
                 </div>
                 <div className="flex gap-2 items-center">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
