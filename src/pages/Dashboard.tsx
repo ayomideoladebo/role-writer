@@ -261,22 +261,16 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
+                  <button
+                    onClick={() => toast.info("Top-up feature coming soon! Contact support to add credits.")}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                  >
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-semibold text-primary">{profile?.credits || 0}</span>
-                  </div>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="bg-primary"
-                    onClick={() => toast.info("Top-up feature coming soon! Contact support to add credits.")}
-                  >
-                    <Zap className="w-3.5 h-3.5 mr-1.5" />
-                    Top Up
-                  </Button>
+                  </button>
                   <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" className="hidden sm:flex">
                         <Settings className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
@@ -392,9 +386,12 @@ const Dashboard = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button variant="outline" onClick={handleLogout}>
+                  <Button variant="outline" onClick={handleLogout} size="sm" className="hidden sm:flex">
                     <LogOut className="w-4 h-4 mr-2" />
-                    Logout
+                    <span className="hidden md:inline">Logout</span>
+                  </Button>
+                  <Button variant="outline" onClick={handleLogout} size="icon" className="sm:hidden">
+                    <LogOut className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
