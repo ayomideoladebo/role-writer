@@ -7,6 +7,7 @@ import {
   Calendar,
   Edit,
   Plug,
+  Shield,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -32,6 +33,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -45,6 +47,16 @@ export function AppSidebar() {
           .eq("id", user.id)
           .single();
         setProfile(data);
+
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        setIsAdmin(!!roleData);
       }
     };
     fetchProfile();
@@ -99,6 +111,34 @@ export function AppSidebar() {
             ))}
           </nav>
         </div>
+
+        {/* ADMIN Section */}
+        {isAdmin && (
+          <div className="mb-6">
+            {!collapsed && (
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+                ADMIN
+              </p>
+            )}
+            <nav className="space-y-1">
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`
+                }
+              >
+                <Shield className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && (
+                  <span className="text-sm font-medium">Admin Dashboard</span>
+                )}
+              </NavLink>
+            </nav>
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/10">
