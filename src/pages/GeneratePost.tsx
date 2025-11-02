@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Sparkles, RefreshCw, Lightbulb, Zap } from "lucide-react";
+import PremiumBanner from "@/components/PremiumBanner";
 
 interface Profile {
   role: string;
@@ -141,6 +142,10 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           Tell us your topic and ideas to generate tailored content
         </p>
       </div>
+
+      {profile && profile.credits < 50 && (
+        <PremiumBanner type="low-credits" credits={profile.credits} dismissible />
+      )}
 
       <Card className="shadow-card border-2 bg-gradient-card">
         <CardHeader>

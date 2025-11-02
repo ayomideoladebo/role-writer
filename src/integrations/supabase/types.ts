@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      feature_usage: {
+        Row: {
+          created_at: string | null
+          feature_name: string
+          id: string
+          last_used_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feature_name: string
+          id?: string
+          last_used_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feature_name?: string
+          id?: string
+          last_used_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string
@@ -44,51 +71,105 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_tiers: {
+        Row: {
+          created_at: string | null
+          credits_included: number
+          features: Json
+          id: string
+          is_active: boolean | null
+          post_limit: number
+          price_monthly: number
+          price_yearly: number
+          tier_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_included: number
+          features: Json
+          id?: string
+          is_active?: boolean | null
+          post_limit: number
+          price_monthly: number
+          price_yearly: number
+          tier_name: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_included?: number
+          features?: Json
+          id?: string
+          is_active?: boolean | null
+          post_limit?: number
+          price_monthly?: number
+          price_yearly?: number
+          tier_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          brand_voice: string | null
           content_goals: string | null
+          content_templates: Json | null
           created_at: string | null
           credits: number
           email: string | null
           id: string
           industry: string | null
           interests: string | null
+          monthly_post_limit: number | null
           onboarding_completed: boolean | null
           posting_frequency: string | null
           role: string | null
+          subscription_end_date: string | null
+          subscription_start_date: string | null
+          subscription_tier: string | null
           target_audience: string | null
           tone_preference: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          brand_voice?: string | null
           content_goals?: string | null
+          content_templates?: Json | null
           created_at?: string | null
           credits?: number
           email?: string | null
           id: string
           industry?: string | null
           interests?: string | null
+          monthly_post_limit?: number | null
           onboarding_completed?: boolean | null
           posting_frequency?: string | null
           role?: string | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
+          subscription_tier?: string | null
           target_audience?: string | null
           tone_preference?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          brand_voice?: string | null
           content_goals?: string | null
+          content_templates?: Json | null
           created_at?: string | null
           credits?: number
           email?: string | null
           id?: string
           industry?: string | null
           interests?: string | null
+          monthly_post_limit?: number | null
           onboarding_completed?: boolean | null
           posting_frequency?: string | null
           role?: string | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
+          subscription_tier?: string | null
           target_audience?: string | null
           tone_preference?: string | null
           updated_at?: string | null
