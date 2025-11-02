@@ -1,5 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Bookmark, Linkedin, Twitter, TrendingUp, Zap } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Bookmark, Linkedin, Twitter, TrendingUp, Zap, Instagram, Facebook, Crown, Calendar } from "lucide-react";
+import ContentCalendar from "@/components/ContentCalendar";
+import BrandVoiceSettings from "@/components/BrandVoiceSettings";
 
 interface Post {
   id: string;
@@ -21,19 +24,38 @@ interface Profile {
   posting_frequency?: string;
   avatar_url?: string | null;
   credits: number;
+  subscription_tier: string;
+  brand_voice?: string | null;
 }
 
 interface ContentInsightsProps {
   posts: Post[];
   profile: Profile | null;
+  onProfileUpdate: () => void;
 }
 
-export default function ContentInsights({ posts, profile }: ContentInsightsProps) {
+export default function ContentInsights({ posts, profile, onProfileUpdate }: ContentInsightsProps) {
+  const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
+
   const stats = {
     total: posts.length,
     saved: posts.filter((p) => p.is_saved).length,
     linkedin: posts.filter((p) => p.platform.toLowerCase() === "linkedin").length,
     twitter: posts.filter((p) => p.platform.toLowerCase() === "twitter").length,
+    instagram: posts.filter((p) => p.platform.toLowerCase() === "instagram").length,
+    facebook: posts.filter((p) => p.platform.toLowerCase() === "facebook").length,
+    thisWeek: posts.filter(p => {
+      const postDate = new Date(p.created_at);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return postDate >= weekAgo;
+    }).length,
+    thisMonth: posts.filter(p => {
+      const postDate = new Date(p.created_at);
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return postDate >= monthAgo;
+    }).length,
   };
 
   return (
@@ -44,6 +66,45 @@ export default function ContentInsights({ posts, profile }: ContentInsightsProps
           Track your content performance and credit usage
         </p>
       </div>
+
+      {/* Advanced Stats Cards */}
+      {isPremium && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gradient-card border-primary/20">
+            <CardContent className="pt-6 pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">This Week</p>
+                  <p className="text-3xl font-bold text-primary">{stats.thisWeek}</p>
+                </div>
+                <Calendar className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-card border-primary/20">
+            <CardContent className="pt-6 pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">This Month</p>
+                  <p className="text-3xl font-bold text-primary">{stats.thisMonth}</p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-card border-primary/20">
+            <CardContent className="pt-6 pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Engagement Rate</p>
+                  <p className="text-3xl font-bold text-primary">{((stats.saved / stats.total) * 100 || 0).toFixed(0)}%</p>
+                </div>
+                <Zap className="w-8 h-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -91,6 +152,32 @@ export default function ContentInsights({ posts, profile }: ContentInsightsProps
             </div>
           </CardContent>
         </Card>
+        {isPremium && (
+          <>
+            <Card className="bg-gradient-card">
+              <CardContent className="pt-6 pb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Instagram</p>
+                    <p className="text-3xl font-bold">{stats.instagram}</p>
+                  </div>
+                  <Instagram className="w-8 h-8 text-primary opacity-50" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-card">
+              <CardContent className="pt-6 pb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Facebook</p>
+                    <p className="text-3xl font-bold">{stats.facebook}</p>
+                  </div>
+                  <Facebook className="w-8 h-8 text-primary opacity-50" />
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
         <Card className="bg-gradient-card border-primary/20">
           <CardContent className="pt-6 pb-6">
             <div className="flex items-center justify-between">
@@ -128,8 +215,13 @@ export default function ContentInsights({ posts, profile }: ContentInsightsProps
 
       {/* Platform Distribution */}
       <Card className="bg-gradient-card">
-        <CardContent className="pt-6 pb-6">
-          <h3 className="font-semibold mb-4">Platform Distribution</h3>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Platform Distribution
+            {isPremium && <Badge variant="secondary">Advanced Analytics</Badge>}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -165,9 +257,57 @@ export default function ContentInsights({ posts, profile }: ContentInsightsProps
                 <span className="text-sm font-medium">{stats.twitter}</span>
               </div>
             </div>
+            {isPremium && stats.instagram > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Instagram className="w-4 h-4 text-primary" />
+                  <span className="text-sm">Instagram</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary"
+                      style={{
+                        width: `${stats.total > 0 ? (stats.instagram / stats.total) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{stats.instagram}</span>
+                </div>
+              </div>
+            )}
+            {isPremium && stats.facebook > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Facebook className="w-4 h-4 text-primary" />
+                  <span className="text-sm">Facebook</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary"
+                      style={{
+                        width: `${stats.total > 0 ? (stats.facebook / stats.total) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{stats.facebook}</span>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Content Calendar */}
+      <ContentCalendar posts={posts} isPremium={isPremium} />
+
+      {/* Brand Voice Settings */}
+      <BrandVoiceSettings 
+        brandVoice={profile?.brand_voice || null} 
+        isPremium={isPremium}
+        onUpdate={onProfileUpdate}
+      />
     </div>
   );
 }

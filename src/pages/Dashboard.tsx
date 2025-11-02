@@ -37,6 +37,9 @@ interface Profile {
   posting_frequency?: string;
   avatar_url?: string | null;
   credits: number;
+  subscription_tier: string;
+  monthly_post_limit: number;
+  brand_voice?: string | null;
 }
 
 const Dashboard = () => {
@@ -219,7 +222,7 @@ const Dashboard = () => {
     } else if (path.includes("/generate")) {
       return <GeneratePost profile={profile} onPostsGenerated={fetchPosts} onCreditsUpdate={handleCreditsUpdate} />;
     } else if (path.includes("/insights")) {
-      return <ContentInsights posts={posts} profile={profile} />;
+      return <ContentInsights posts={posts} profile={profile} onProfileUpdate={checkAuth} />;
     } else if (path.includes("/posts")) {
       return <PastPosts posts={posts} profile={profile} onPostsUpdate={fetchPosts} onCreditsUpdate={handleCreditsUpdate} />;
     }

@@ -28,6 +28,9 @@ interface Profile {
   posting_frequency?: string;
   avatar_url?: string | null;
   credits: number;
+  subscription_tier: string;
+  monthly_post_limit: number;
+  brand_voice?: string | null;
 }
 
 interface PastPostsProps {
@@ -43,6 +46,8 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
   const [filterSaved, setFilterSaved] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [generatingImageForPost, setGeneratingImageForPost] = useState<string | null>(null);
+
+  const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
 
   const handleSave = async (postId: string) => {
     try {
@@ -100,6 +105,11 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
   };
 
   const handleGenerateImage = async (postId: string) => {
+    if (!isPremium) {
+      toast.error("Image generation is a premium feature");
+      return;
+    }
+
     try {
       if (!profile || profile.credits < 5) {
         toast.error("Insufficient credits. You need 5 credits to generate an image. Please top up!");
@@ -163,6 +173,11 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
   };
 
   const handleExportPosts = (format: "csv" | "json") => {
+    if (!isPremium) {
+      toast.error("Export to CSV/JSON is a premium feature");
+      return;
+    }
+
     if (filteredPosts.length === 0) {
       toast.error("No posts to export");
       return;
@@ -243,6 +258,12 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
             <SelectItem value="all">All Platforms</SelectItem>
             <SelectItem value="linkedin">LinkedIn</SelectItem>
             <SelectItem value="twitter">Twitter</SelectItem>
+            {isPremium && (
+              <>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="facebook">Facebook</SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
         <Tabs value={filterSaved} onValueChange={setFilterSaved} className="w-full sm:w-auto">

@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, Lightbulb, Zap } from "lucide-react";
+import { Sparkles, RefreshCw, Lightbulb, Zap, Crown } from "lucide-react";
 import PremiumBanner from "@/components/PremiumBanner";
 
 interface Profile {
@@ -21,6 +23,9 @@ interface Profile {
   posting_frequency?: string;
   avatar_url?: string | null;
   credits: number;
+  subscription_tier: string;
+  monthly_post_limit: number;
+  brand_voice?: string | null;
 }
 
 interface GeneratePostProps {
@@ -33,7 +38,13 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
   const [generating, setGenerating] = useState(false);
   const [topic, setTopic] = useState("");
   const [idea, setIdea] = useState("");
+  const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["linkedin", "twitter"]);
+  const [batchSize, setBatchSize] = useState(3);
   const location = useLocation();
+
+  const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
+  const isEnterprise = profile?.subscription_tier === "enterprise";
 
   useEffect(() => {
     // Check if we received topic and idea from navigation state
@@ -57,6 +68,8 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           profile,
           topic: topic.trim(),
           idea: idea.trim() || undefined,
+          model: selectedModel,
+          platforms: selectedPlatforms,
         },
       });
 
@@ -90,6 +103,11 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
   };
 
   const handleBatchGenerate = async () => {
+    if (!isPremium) {
+      toast.error("Batch generation is a premium feature");
+      return;
+    }
+
     if (!topic.trim()) {
       toast.error("Please enter a topic for batch generation");
       return;
@@ -97,19 +115,22 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
 
     setGenerating(true);
     try {
-      // Generate 3 batches
-      for (let i = 0; i < 3; i++) {
+      // Generate batches
+      for (let i = 0; i < batchSize; i++) {
         const { error } = await supabase.functions.invoke("generate-posts", {
           body: {
             profile,
             topic: topic.trim(),
             idea: idea.trim() || undefined,
+            model: selectedModel,
+            platforms: selectedPlatforms,
           },
         });
         if (error) throw error;
       }
 
-      toast.success("Batch generation complete! 6 new posts created. 60 credits deducted.");
+      const creditsUsed = batchSize * 20;
+      toast.success(`Batch generation complete! ${batchSize * 2} new posts created. ${creditsUsed} credits deducted.`);
 
       setTopic("");
       setIdea("");
@@ -147,6 +168,10 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
         <PremiumBanner type="low-credits" credits={profile.credits} dismissible />
       )}
 
+      {!isPremium && (
+        <PremiumBanner type="feature-locked" featureName="Advanced AI Models & Batch Generation" dismissible />
+      )}
+
       <Card className="shadow-card border-2 bg-gradient-card">
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -162,6 +187,49 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {isPremium && (
+            <div className="space-y-2">
+              <Label htmlFor="model">AI Model {isEnterprise && <Badge variant="secondary" className="ml-2">Custom Models</Badge>}</Label>
+              <Select value={selectedModel} onValueChange={setSelectedModel} disabled={generating}>
+                <SelectTrigger id="model">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</SelectItem>
+                  <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (Premium)</SelectItem>
+                  <SelectItem value="openai/gpt-5-mini">GPT-5 Mini (Fast)</SelectItem>
+                  {isEnterprise && <SelectItem value="openai/gpt-5">GPT-5 (Enterprise)</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {isPremium && (
+            <div className="space-y-2">
+              <Label>Target Platforms <Badge variant="secondary" className="ml-2">Premium</Badge></Label>
+              <div className="flex flex-wrap gap-2">
+                {["linkedin", "twitter", "instagram", "facebook"].map((platform) => (
+                  <Button
+                    key={platform}
+                    type="button"
+                    variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (selectedPlatforms.includes(platform)) {
+                        setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform));
+                      } else {
+                        setSelectedPlatforms([...selectedPlatforms, platform]);
+                      }
+                    }}
+                    disabled={generating}
+                  >
+                    {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
             <Input
@@ -200,24 +268,51 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
               </>
             )}
           </Button>
-          <Button
-            onClick={handleBatchGenerate}
-            disabled={generating || !topic.trim()}
-            variant="outline"
-            className="w-full"
-          >
-            {generating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Batch...
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4 mr-2" />
-                Batch Generate 6 Posts (60 credits)
-              </>
-            )}
-          </Button>
+          {isPremium && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="batch-size">Batch Size</Label>
+                <Select value={batchSize.toString()} onValueChange={(v) => setBatchSize(Number(v))} disabled={generating}>
+                  <SelectTrigger id="batch-size">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 batches (6 posts)</SelectItem>
+                    <SelectItem value="5">5 batches (10 posts)</SelectItem>
+                    {isEnterprise && <SelectItem value="10">10 batches (20 posts)</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={handleBatchGenerate}
+                disabled={generating || !topic.trim()}
+                variant="outline"
+                className="w-full"
+              >
+                {generating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Generating batch...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Batch Generate {batchSize * 2} Posts ({batchSize * 20} credits)
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+          {!isPremium && (
+            <Button
+              onClick={() => toast.info("Upgrade to Premium for batch generation")}
+              variant="outline"
+              className="w-full"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Unlock Batch Generation (Premium)
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

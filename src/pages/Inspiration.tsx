@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Sparkles, RefreshCw, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PremiumTemplates from "@/components/PremiumTemplates";
+import PremiumBanner from "@/components/PremiumBanner";
 
 interface Profile {
   role: string;
@@ -19,6 +21,7 @@ interface Profile {
   posting_frequency?: string;
   avatar_url?: string | null;
   credits: number;
+  subscription_tier: string;
 }
 
 interface InspirationProps {
@@ -29,7 +32,10 @@ export default function Inspiration({ profile }: InspirationProps) {
   const [generatingIdeas, setGeneratingIdeas] = useState(false);
   const [suggestedIdeas, setSuggestedIdeas] = useState<Array<{ topic: string; ideas: string }>>([]);
   const [ideaMode, setIdeaMode] = useState<string>("normal");
+  const [showTemplates, setShowTemplates] = useState(false);
   const navigate = useNavigate();
+
+  const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
 
   const generateIdeasHandler = async () => {
     setGeneratingIdeas(true);
@@ -58,6 +64,15 @@ export default function Inspiration({ profile }: InspirationProps) {
       } 
     });
     toast.success("Idea selected! Ready to generate posts.");
+  };
+
+  const handleSelectTemplate = (template: string) => {
+    navigate("/dashboard/generate", {
+      state: {
+        topic: "Template Based Content",
+        idea: template
+      }
+    });
   };
 
   return (
@@ -143,6 +158,12 @@ export default function Inspiration({ profile }: InspirationProps) {
           </CardContent>
         )}
       </Card>
+
+      {!isPremium && (
+        <PremiumBanner type="upgrade-prompt" dismissible />
+      )}
+
+      <PremiumTemplates isPremium={isPremium} onSelectTemplate={handleSelectTemplate} />
     </div>
   );
 }
