@@ -66,14 +66,53 @@ export default function Pricing() {
   };
 
   const handleUpgrade = async (tierName: string) => {
-    if (tierName === "free") {
-      toast.info("You're already on the free plan!");
+    if (tierName === currentTier) {
+      toast.info("You're already on this plan!");
       return;
     }
 
-    toast.info("Upgrade feature coming soon! Contact sales for premium access.", {
-      description: "Email: sales@linktweet.ai",
-    });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to upgrade");
+        navigate("/auth");
+        return;
+      }
+
+      // Find the tier data
+      const tier = pricingTiers.find(t => t.tier_name === tierName);
+      if (!tier) {
+        toast.error("Plan not found");
+        return;
+      }
+
+      // Update subscription tier in database
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          subscription_tier: tierName,
+          monthly_post_limit: tier.post_limit,
+          credits: tier.credits_included,
+          subscription_start_date: new Date().toISOString(),
+          subscription_end_date: new Date(Date.now() + (billingPeriod === "monthly" ? 30 : 365) * 24 * 60 * 60 * 1000).toISOString()
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setCurrentTier(tierName);
+      toast.success(`Successfully upgraded to ${tierName} plan!`, {
+        description: `You now have ${tier.credits_included} credits and can create ${tier.post_limit} posts/month`
+      });
+
+      // Navigate back to dashboard after 2 seconds
+      setTimeout(() => {
+        navigate("/dashboard/insights");
+      }, 2000);
+    } catch (error: any) {
+      console.error("Upgrade error:", error);
+      toast.error("Failed to upgrade. Please try again or contact support.");
+    }
   };
 
   const getTierIcon = (tierName: string) => {

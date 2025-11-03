@@ -8,8 +8,11 @@ import {
   Edit,
   Plug,
   Shield,
+  CreditCard,
+  Megaphone,
+  BarChart3,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -29,11 +32,18 @@ const createItems = [
   { title: "Past Posts", url: "/dashboard/posts", icon: Edit },
 ];
 
+const premiumItems = [
+  { title: "Content Calendar", url: "/dashboard/insights", icon: Calendar },
+  { title: "Brand Voice", url: "/dashboard/insights", icon: Megaphone },
+  { title: "Analytics", url: "/dashboard/insights", icon: BarChart3 },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -112,6 +122,37 @@ export function AppSidebar() {
           </nav>
         </div>
 
+        {/* PREMIUM Features Section */}
+        {profile?.subscription_tier !== "free" && (
+          <div className="mb-6">
+            {!collapsed && (
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+                PREMIUM
+              </p>
+            )}
+            <nav className="space-y-1">
+              {premiumItems.map((item) => (
+                <NavLink
+                  key={item.title}
+                  to={item.url}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`
+                  }
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {!collapsed && (
+                    <span className="text-sm font-medium">{item.title}</span>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        )}
+
         {/* ADMIN Section */}
         {isAdmin && (
           <div className="mb-6">
@@ -142,9 +183,24 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/10">
-        {/* Upgrade to Pro Button */}
+        {/* Pricing Link */}
         {!collapsed && (
-          <Button className="w-full mb-3 bg-primary hover:opacity-90 text-white font-medium">
+          <Button 
+            onClick={() => navigate("/pricing")}
+            variant="ghost"
+            className="w-full mb-2 justify-start text-muted-foreground hover:text-foreground"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            Pricing
+          </Button>
+        )}
+
+        {/* Upgrade to Pro Button */}
+        {!collapsed && profile?.subscription_tier === "free" && (
+          <Button 
+            onClick={() => navigate("/pricing")}
+            className="w-full mb-3 bg-primary hover:opacity-90 text-white font-medium"
+          >
             <Sparkles className="w-4 h-4 mr-2" />
             Upgrade to Pro
           </Button>
@@ -161,9 +217,11 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
-                User
+                {profile?.email?.split("@")[0] || "User"}
               </p>
-              <p className="text-xs text-muted-foreground">Free Plan</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {profile?.subscription_tier || "Free"} Plan
+              </p>
             </div>
           )}
         </div>
