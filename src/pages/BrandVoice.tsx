@@ -16,34 +16,45 @@ export default function BrandVoice() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleUpdate = () => {
-    // Refetch profile after update
-    fetchProfile();
-  };
-
-  const fetchProfile = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("subscription_tier, brand_voice")
-      .eq("id", user.id)
-      .single();
-
-    setProfile(profileData);
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const fetchProfile = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("subscription_tier, brand_voice")
+        .eq("id", user.id)
+        .single();
+
+      setProfile(profileData);
+      setLoading(false);
+    };
+
     fetchProfile();
   }, [navigate]);
+
+  const handleUpdate = () => {
+    // Refetch profile after update
+    const refetch = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("subscription_tier, brand_voice")
+          .eq("id", user.id)
+          .single();
+        setProfile(data);
+      }
+    };
+    refetch();
+  };
 
   if (loading) {
     return (

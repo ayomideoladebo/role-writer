@@ -34,26 +34,22 @@ export default function ContentCalendar() {
         return;
       }
 
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("subscription_tier")
-        .eq("id", user.id)
-        .single();
+      // Fetch both profile and posts in parallel for faster loading
+      const [profileResult, postsResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("subscription_tier")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("posts")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+      ]);
 
-      setProfile(profileData);
-
-      // Fetch posts
-      const { data: postsData } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (postsData) {
-        setPosts(postsData);
-      }
-
+      setProfile(profileResult.data);
+      setPosts(postsResult.data || []);
       setLoading(false);
     };
 
