@@ -9,6 +9,9 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Pricing from "./pages/Pricing";
+import ContentCalendar from "./pages/ContentCalendar";
+import BrandVoice from "./pages/BrandVoice";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
+          <Route path="/dashboard/calendar" element={<ContentCalendar />} />
+          <Route path="/dashboard/brand-voice" element={<BrandVoice />} />
+          <Route path="/dashboard/analytics" element={<Analytics />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/pricing" element={<Pricing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

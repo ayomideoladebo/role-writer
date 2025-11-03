@@ -33,9 +33,9 @@ const createItems = [
 ];
 
 const premiumItems = [
-  { title: "Content Calendar", url: "/dashboard/insights", icon: Calendar },
-  { title: "Brand Voice", url: "/dashboard/insights", icon: Megaphone },
-  { title: "Analytics", url: "/dashboard/insights", icon: BarChart3 },
+  { title: "Content Calendar", url: "/dashboard/calendar", icon: Calendar },
+  { title: "Brand Voice", url: "/dashboard/brand-voice", icon: Megaphone },
+  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
 ];
 
 export function AppSidebar() {
