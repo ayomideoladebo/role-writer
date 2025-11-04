@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, CreditCard, Search, Package, TrendingUp, Calendar } from "lucide-react";
+import { Shield, Users, CreditCard, Search, Package, TrendingUp, Calendar, AlertTriangle, Activity, BarChart3 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,12 +35,33 @@ interface Post {
   created_at: string;
 }
 
+interface SystemStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalPosts: number;
+  totalCredits: number;
+  premiumUsers: number;
+  freeUsers: number;
+  postsThisMonth: number;
+  postsToday: number;
+}
+
 export default function AdminDashboard() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [stats, setStats] = useState<SystemStats>({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalPosts: 0,
+    totalCredits: 0,
+    premiumUsers: 0,
+    freeUsers: 0,
+    postsThisMonth: 0,
+    postsToday: 0,
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,8 +120,37 @@ export default function AdminDashboard() {
       if (usersResult.error) throw usersResult.error;
       if (postsResult.error) throw postsResult.error;
 
-      setUsers(usersResult.data || []);
-      setPosts(postsResult.data || []);
+      const userData = usersResult.data || [];
+      const postData = postsResult.data || [];
+
+      setUsers(userData);
+      setPosts(postData);
+
+      // Calculate stats
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const premiumCount = userData.filter(u => u.subscription_tier !== "free").length;
+      const totalCreditsCount = userData.reduce((sum, user) => sum + user.credits, 0);
+      const postsThisMonthCount = postData.filter(p => new Date(p.created_at) >= thisMonth).length;
+      const postsTodayCount = postData.filter(p => new Date(p.created_at) >= today).length;
+      const activeUsersCount = userData.filter(u => {
+        const lastActivity = new Date(u.updated_at);
+        const daysSinceActivity = (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24);
+        return daysSinceActivity <= 7;
+      }).length;
+
+      setStats({
+        totalUsers: userData.length,
+        activeUsers: activeUsersCount,
+        totalPosts: postData.length,
+        totalCredits: totalCreditsCount,
+        premiumUsers: premiumCount,
+        freeUsers: userData.length - premiumCount,
+        postsThisMonth: postsThisMonthCount,
+        postsToday: postsTodayCount,
+      });
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
@@ -209,14 +259,55 @@ export default function AdminDashboard() {
       user.id.includes(searchQuery)
   );
 
-  const totalPosts = posts.length;
-  const postsThisMonth = posts.filter(p => {
-    const postDate = new Date(p.created_at);
-    const now = new Date();
-    return postDate.getMonth() === now.getMonth() && postDate.getFullYear() === now.getFullYear();
-  }).length;
+  const makeAdmin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: "admin" });
 
-  const premiumUsers = users.filter(u => u.subscription_tier !== "free").length;
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "User granted admin privileges",
+      });
+
+      fetchAllData();
+    } catch (error) {
+      console.error("Error making admin:", error);
+      toast({
+        title: "Error",
+        description: "Failed to grant admin privileges",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeAdmin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Admin privileges revoked",
+      });
+
+      fetchAllData();
+    } catch (error) {
+      console.error("Error removing admin:", error);
+      toast({
+        title: "Error",
+        description: "Failed to revoke admin privileges",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -266,9 +357,22 @@ export default function AdminDashboard() {
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              {premiumUsers} premium users
+              {stats.premiumUsers} premium · {stats.freeUsers} free
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Activity className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              Active in last 7 days
             </p>
           </CardContent>
         </Card>
@@ -281,9 +385,9 @@ export default function AdminDashboard() {
             <Calendar className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalPosts}</div>
+            <div className="text-2xl font-bold">{stats.totalPosts}</div>
             <p className="text-xs text-muted-foreground">
-              {postsThisMonth} this month
+              {stats.postsThisMonth} this month · {stats.postsToday} today
             </p>
           </CardContent>
         </Card>
@@ -297,12 +401,12 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.reduce((sum, user) => sum + user.credits, 0)}
+              {stats.totalCredits.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Avg: {users.length > 0
-                ? Math.round(users.reduce((sum, user) => sum + user.credits, 0) / users.length)
-                : 0}
+              Avg: {stats.totalUsers > 0
+                ? Math.round(stats.totalCredits / stats.totalUsers)
+                : 0} per user
             </p>
           </CardContent>
         </Card>
@@ -316,10 +420,61 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${premiumUsers * 29}
+              ${(stats.premiumUsers * 29).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               Monthly recurring
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Platform Usage</CardTitle>
+            <Package className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span>LinkedIn:</span>
+                <span className="font-medium">{posts.filter(p => p.platform === "linkedin").length}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span>Twitter:</span>
+                <span className="font-medium">{posts.filter(p => p.platform === "twitter").length}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span>Instagram:</span>
+                <span className="font-medium">{posts.filter(p => p.platform === "instagram").length}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">System Health</CardTitle>
+            <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-500">Online</div>
+            <p className="text-xs text-muted-foreground">
+              All systems operational
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Avg Posts/User</CardTitle>
+            <BarChart3 className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.totalUsers > 0 ? (stats.totalPosts / stats.totalUsers).toFixed(1) : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total posts per user
             </p>
           </CardContent>
         </Card>
@@ -350,6 +505,7 @@ export default function AdminDashboard() {
                 <TableHead>Subscription</TableHead>
                 <TableHead>Credits</TableHead>
                 <TableHead>Post Limit</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -393,29 +549,60 @@ export default function AdminDashboard() {
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    <Badge variant={user.role === "admin" ? "default" : "outline"}>
+                      {user.role || "User"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     {new Date(user.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      size="sm"
-                      onClick={() => updateCredits(user.id, 100)}
-                    >
-                      +100
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => updateCredits(user.id, 50)}
-                    >
-                      +50
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteUser(user.id)}
-                    >
-                      Delete
-                    </Button>
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end flex-wrap">
+                      <Button
+                        size="sm"
+                        onClick={() => updateCredits(user.id, 100)}
+                      >
+                        +100
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateCredits(user.id, 50)}
+                      >
+                        +50
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateCredits(user.id, -50)}
+                      >
+                        -50
+                      </Button>
+                      {user.role !== "admin" ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => makeAdmin(user.id)}
+                        >
+                          Make Admin
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => removeAdmin(user.id)}
+                        >
+                          Remove Admin
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteUser(user.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

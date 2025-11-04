@@ -11,6 +11,7 @@ import {
   CreditCard,
   Megaphone,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -71,6 +72,11 @@ export function AppSidebar() {
     };
     fetchProfile();
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r bg-[#1e1e2e]">
@@ -203,6 +209,18 @@ export function AppSidebar() {
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Upgrade to Pro
+          </Button>
+        )}
+
+        {/* Logout Button */}
+        {!collapsed && (
+          <Button 
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full mb-2 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
           </Button>
         )}
 
