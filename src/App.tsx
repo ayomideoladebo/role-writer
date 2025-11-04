@@ -26,10 +26,11 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/dashboard/*" element={<Dashboard />} />
+          {/* Specific dashboard routes MUST come before the catch-all */}
           <Route path="/dashboard/calendar" element={<ContentCalendar />} />
           <Route path="/dashboard/brand-voice" element={<BrandVoice />} />
           <Route path="/dashboard/analytics" element={<Analytics />} />
+          <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/pricing" element={<Pricing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
