@@ -69,7 +69,7 @@ export default function ContentCalendar({ posts, isPremium }: ContentCalendarPro
 
   const handleGeneratePost = async () => {
     if (!prompt.trim()) {
-      toast.error("Please enter a prompt");
+      toast.error("Please enter a topic for your post");
       return;
     }
 
@@ -81,34 +81,32 @@ export default function ContentCalendar({ posts, isPremium }: ContentCalendarPro
         return;
       }
 
-      // Check credits
+      // Check credits and fetch full profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("credits")
+        .select("*")
         .eq("id", user.id)
         .single();
 
-      if (!profile || profile.credits < 1) {
-        toast.error("Not enough credits. Please top up to continue.");
+      if (!profile || profile.credits < 10) {
+        toast.error("Not enough credits. Upgrade your plan to continue.");
         return;
       }
 
       const { data, error } = await supabase.functions.invoke("generate-posts", {
         body: {
-          prompt,
+          profile: {
+            role: profile.role,
+            industry: profile.industry,
+            tone_preference: profile.tone_preference,
+          },
+          topic: prompt,
           platform,
-          count: 1,
-          scheduledDate: selectedDate?.toISOString(),
+          regenerate: true,
         },
       });
 
       if (error) throw error;
-
-      // Deduct credit
-      await supabase
-        .from("profiles")
-        .update({ credits: profile.credits - 1 })
-        .eq("id", user.id);
 
       // Save post
       if (data?.posts?.[0]) {

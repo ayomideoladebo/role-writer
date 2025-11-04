@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, CreditCard, Search } from "lucide-react";
+import { Shield, Users, CreditCard, Search, Package, TrendingUp, Calendar } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Profile {
   id: string;
@@ -22,10 +23,21 @@ interface Profile {
   role: string | null;
   industry: string | null;
   created_at: string;
+  subscription_tier: string;
+  monthly_post_limit: number;
+}
+
+interface Post {
+  id: string;
+  user_id: string;
+  platform: string;
+  content: string;
+  created_at: string;
 }
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<Profile[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -56,7 +68,7 @@ export default function AdminDashboard() {
 
       if (roleData) {
         setIsAdmin(true);
-        fetchAllUsers();
+        fetchAllData();
       } else {
         toast({
           title: "Access Denied",
@@ -71,20 +83,66 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchAllUsers = async () => {
+  const fetchAllData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const [usersResult, postsResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("posts")
+          .select("*")
+          .order("created_at", { ascending: false })
+      ]);
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (usersResult.error) throw usersResult.error;
+      if (postsResult.error) throw postsResult.error;
+
+      setUsers(usersResult.data || []);
+      setPosts(postsResult.data || []);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching data:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch users",
+        description: "Failed to fetch data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateSubscription = async (userId: string, tier: string) => {
+    try {
+      const tierConfig: Record<string, { credits: number; postLimit: number }> = {
+        free: { credits: 100, postLimit: 20 },
+        premium: { credits: 500, postLimit: 100 },
+        enterprise: { credits: 2000, postLimit: 500 },
+      };
+
+      const config = tierConfig[tier] || tierConfig.free;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          subscription_tier: tier,
+          credits: config.credits,
+          monthly_post_limit: config.postLimit,
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Subscription updated to ${tier}`,
+      });
+
+      fetchAllData();
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update subscription",
         variant: "destructive",
       });
     }
@@ -109,7 +167,7 @@ export default function AdminDashboard() {
         description: `Credits ${amount > 0 ? "added" : "deducted"} successfully`,
       });
 
-      fetchAllUsers();
+      fetchAllData();
     } catch (error) {
       console.error("Error updating credits:", error);
       toast({
@@ -120,11 +178,45 @@ export default function AdminDashboard() {
     }
   };
 
+  const deleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user? This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+
+      fetchAllData();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = users.filter(
     (user) =>
       user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.id.includes(searchQuery)
   );
+
+  const totalPosts = posts.length;
+  const postsThisMonth = posts.filter(p => {
+    const postDate = new Date(p.created_at);
+    const now = new Date();
+    return postDate.getMonth() === now.getMonth() && postDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const premiumUsers = users.filter(u => u.subscription_tier !== "free").length;
 
   if (loading) {
     return (
@@ -155,19 +247,19 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-6 space-y-6 bg-[#0a0c1a]">
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Shield className="w-8 h-8 text-primary" />
           Admin Dashboard
         </h1>
         <p className="text-muted-foreground mt-2">
-          Manage users and their credits
+          Manage users, subscriptions, and monitor platform activity
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -175,13 +267,31 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{users.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {premiumUsers} premium users
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Credits Issued
+              Total Posts
+            </CardTitle>
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalPosts}</div>
+            <p className="text-xs text-muted-foreground">
+              {postsThisMonth} this month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Credits
             </CardTitle>
             <CreditCard className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
@@ -189,25 +299,28 @@ export default function AdminDashboard() {
             <div className="text-2xl font-bold">
               {users.reduce((sum, user) => sum + user.credits, 0)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Avg: {users.length > 0
+                ? Math.round(users.reduce((sum, user) => sum + user.credits, 0) / users.length)
+                : 0}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Average Credits
+              Revenue Potential
             </CardTitle>
-            <CreditCard className="w-4 h-4 text-muted-foreground" />
+            <TrendingUp className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.length > 0
-                ? Math.round(
-                    users.reduce((sum, user) => sum + user.credits, 0) /
-                      users.length
-                  )
-                : 0}
+              ${premiumUsers * 29}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Monthly recurring
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -234,7 +347,9 @@ export default function AdminDashboard() {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Industry</TableHead>
+                <TableHead>Subscription</TableHead>
                 <TableHead>Credits</TableHead>
+                <TableHead>Post Limit</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -251,10 +366,30 @@ export default function AdminDashboard() {
                     )}
                   </TableCell>
                   <TableCell>
+                    <Select
+                      value={user.subscription_tier}
+                      onValueChange={(value) => updateSubscription(user.id, value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="free">Free</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
                     <Badge
                       variant={user.credits > 50 ? "default" : "destructive"}
                     >
-                      {user.credits} credits
+                      {user.credits}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {user.monthly_post_limit}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -276,17 +411,10 @@ export default function AdminDashboard() {
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => updateCredits(user.id, 10)}
-                    >
-                      +10
-                    </Button>
-                    <Button
-                      size="sm"
                       variant="destructive"
-                      onClick={() => updateCredits(user.id, -10)}
+                      onClick={() => deleteUser(user.id)}
                     >
-                      -10
+                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -112,7 +112,7 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
     try {
       if (!profile || profile.credits < 5) {
-        toast.error("Insufficient credits. You need 5 credits to generate an image. Please top up!");
+        toast.error("Insufficient credits. Upgrade your plan to continue.");
         return;
       }
 

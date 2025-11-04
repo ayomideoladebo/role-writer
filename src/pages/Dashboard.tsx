@@ -264,13 +264,10 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <button
-                    onClick={() => toast.info("Top-up feature coming soon! Contact support to add credits.")}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
-                  >
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-semibold text-primary">{profile?.credits || 0}</span>
-                  </button>
+                  </div>
                   <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="icon" className="hidden sm:flex">
