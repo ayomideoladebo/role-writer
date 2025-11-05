@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Bookmark, Linkedin, Twitter, TrendingUp, Zap, Instagram, Facebook, Crown, Calendar } from "lucide-react";
+import { FileText, Bookmark, Linkedin, Twitter, TrendingUp, Zap, Crown, Calendar } from "lucide-react";
 import ContentCalendar from "@/components/ContentCalendar";
 import BrandVoiceSettings from "@/components/BrandVoiceSettings";
 
@@ -42,8 +42,6 @@ export default function ContentInsights({ posts, profile, onProfileUpdate }: Con
     saved: posts.filter((p) => p.is_saved).length,
     linkedin: posts.filter((p) => p.platform.toLowerCase() === "linkedin").length,
     twitter: posts.filter((p) => p.platform.toLowerCase() === "twitter").length,
-    instagram: posts.filter((p) => p.platform.toLowerCase() === "instagram").length,
-    facebook: posts.filter((p) => p.platform.toLowerCase() === "facebook").length,
     thisWeek: posts.filter(p => {
       const postDate = new Date(p.created_at);
       const weekAgo = new Date();
@@ -152,32 +150,6 @@ export default function ContentInsights({ posts, profile, onProfileUpdate }: Con
             </div>
           </CardContent>
         </Card>
-        {isPremium && (
-          <>
-            <Card className="bg-gradient-card">
-              <CardContent className="pt-6 pb-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Instagram</p>
-                    <p className="text-3xl font-bold">{stats.instagram}</p>
-                  </div>
-                  <Instagram className="w-8 h-8 text-primary opacity-50" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-card">
-              <CardContent className="pt-6 pb-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Facebook</p>
-                    <p className="text-3xl font-bold">{stats.facebook}</p>
-                  </div>
-                  <Facebook className="w-8 h-8 text-primary opacity-50" />
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
         <Card className="bg-gradient-card border-primary/20">
           <CardContent className="pt-6 pb-6">
             <div className="flex items-center justify-between">
@@ -257,44 +229,6 @@ export default function ContentInsights({ posts, profile, onProfileUpdate }: Con
                 <span className="text-sm font-medium">{stats.twitter}</span>
               </div>
             </div>
-            {isPremium && stats.instagram > 0 && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Instagram className="w-4 h-4 text-primary" />
-                  <span className="text-sm">Instagram</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary"
-                      style={{
-                        width: `${stats.total > 0 ? (stats.instagram / stats.total) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium">{stats.instagram}</span>
-                </div>
-              </div>
-            )}
-            {isPremium && stats.facebook > 0 && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Facebook className="w-4 h-4 text-primary" />
-                  <span className="text-sm">Facebook</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary"
-                      style={{
-                        width: `${stats.total > 0 ? (stats.facebook / stats.total) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium">{stats.facebook}</span>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

@@ -23,6 +23,7 @@ export default function Analytics() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [growthRate, setGrowthRate] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,6 +53,27 @@ export default function Analytics() {
 
       setProfile(profileResult.data);
       setPosts(postsResult.data || []);
+      
+      // Calculate growth rate
+      if (postsResult.data) {
+        const thisMonth = postsResult.data.filter(p => {
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return new Date(p.created_at) >= monthAgo;
+        }).length;
+        
+        const lastMonth = postsResult.data.filter(p => {
+          const twoMonthsAgo = new Date();
+          twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+          return new Date(p.created_at) >= twoMonthsAgo && new Date(p.created_at) < oneMonthAgo;
+        }).length;
+        
+        const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0;
+        setGrowthRate(Math.round(growth * 10) / 10);
+      }
+      
       setLoading(false);
     };
 
@@ -183,11 +205,11 @@ export default function Analytics() {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Growth Rate</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">+12.5%</div>
+                    <div className="text-2xl font-bold">{growthRate > 0 ? '+' : ''}{growthRate}%</div>
                     <p className="text-xs text-muted-foreground">vs last month</p>
                   </CardContent>
                 </Card>

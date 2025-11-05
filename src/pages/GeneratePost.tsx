@@ -208,7 +208,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
             <div className="space-y-2">
               <Label>Target Platforms <Badge variant="secondary" className="ml-2">Premium</Badge></Label>
               <div className="flex flex-wrap gap-2">
-                {["linkedin", "twitter", "instagram", "facebook"].map((platform) => (
+                {["linkedin", "twitter"].map((platform) => (
                   <Button
                     key={platform}
                     type="button"
