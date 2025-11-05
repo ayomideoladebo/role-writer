@@ -55,6 +55,13 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
     }
   }, [location.state]);
 
+  useEffect(() => {
+    // Ensure model selection is appropriate for subscription tier
+    if (selectedModel === "openai/gpt-5" && !isEnterprise) {
+      setSelectedModel("google/gemini-2.5-flash");
+    }
+  }, [selectedModel, isEnterprise]);
+
   const generatePosts = async () => {
     if (!topic.trim()) {
       toast.error("Please enter a topic");
@@ -189,7 +196,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
         <CardContent className="space-y-4">
           {isPremium && (
             <div className="space-y-2">
-              <Label htmlFor="model">AI Model {isEnterprise && <Badge variant="secondary" className="ml-2">Custom Models</Badge>}</Label>
+              <Label htmlFor="model">AI Model {isEnterprise && <Badge variant="secondary" className="ml-2">Enterprise Exclusive</Badge>}</Label>
               <Select value={selectedModel} onValueChange={setSelectedModel} disabled={generating}>
                 <SelectTrigger id="model">
                   <SelectValue />
@@ -198,7 +205,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
                   <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</SelectItem>
                   <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (Premium)</SelectItem>
                   <SelectItem value="openai/gpt-5-mini">GPT-5 Mini (Fast)</SelectItem>
-                  {isEnterprise && <SelectItem value="openai/gpt-5">GPT-5 (Enterprise)</SelectItem>}
+                  {isEnterprise && <SelectItem value="openai/gpt-5">GPT-5 Full (Enterprise Only)</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -271,7 +278,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           {isPremium && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="batch-size">Batch Size</Label>
+                <Label htmlFor="batch-size">Batch Size <Badge variant="secondary" className="ml-2">{isEnterprise ? "Up to 20" : "Up to 5"}</Badge></Label>
                 <Select value={batchSize.toString()} onValueChange={(v) => setBatchSize(Number(v))} disabled={generating}>
                   <SelectTrigger id="batch-size">
                     <SelectValue />
@@ -280,6 +287,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
                     <SelectItem value="3">3 batches (6 posts)</SelectItem>
                     <SelectItem value="5">5 batches (10 posts)</SelectItem>
                     {isEnterprise && <SelectItem value="10">10 batches (20 posts)</SelectItem>}
+                    {isEnterprise && <SelectItem value="20">20 batches (40 posts)</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>

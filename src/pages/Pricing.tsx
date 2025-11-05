@@ -198,11 +198,18 @@ export default function Pricing() {
                 key={tier.id}
                 className={`relative ${getTierColor(tier.tier_name)} ${
                   isPremiumTier ? "border-primary border-2 shadow-2xl scale-105" : ""
+                } ${
+                  tier.tier_name === "enterprise" ? "border-amber-500 border-2 shadow-2xl" : ""
                 }`}
               >
                 {isPremiumTier && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
                     Most Popular
+                  </Badge>
+                )}
+                {tier.tier_name === "enterprise" && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500">
+                    Best Value
                   </Badge>
                 )}
                 {isCurrentTier && (
@@ -245,10 +252,13 @@ export default function Pricing() {
                   </Button>
 
                   <div className="space-y-3">
-                    {tier.features.features.map((feature, index) => (
-                      <div key={index} className="flex items-start gap-3">
+                    {Object.entries(tier.features).map(([key, value]) => (
+                      <div key={key} className="flex items-start gap-3">
                         <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
+                        <div className="flex-1">
+                          <span className="text-sm font-semibold text-foreground">{key}:</span>
+                          <span className="text-sm text-muted-foreground ml-1">{String(value)}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
