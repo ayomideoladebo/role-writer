@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { postContent, postType, avatarUrl } = await req.json();
+    const { postContent, postType, avatarUrl, customPrompt, userInterests } = await req.json();
 
     if (!postContent) {
       return new Response(
@@ -26,21 +26,31 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Creative camera angles and styles
-    const cameraAngles = ['over-the-shoulder shot', 'side profile', 'realistic phone camera shoot style', 'slightly elevated angle', 'eye-level perspective'];
-    const styles = ['realistic cinematic lighting with warm tones', ' realistic bright natural window light', 'realistic modern minimalist'];
-    const randomAngle = cameraAngles[Math.floor(Math.random() * cameraAngles.length)];
-    const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-
-    // Determine the image prompt and content based on post type
+    // Use custom prompt if provided, otherwise generate based on post type
     let imagePrompt = '';
     let requestBody: any = {
       model: 'google/gemini-2.5-flash-image-preview',
       modalities: ['image', 'text']
     };
     
-    if (postType === 'story' && avatarUrl) {
+    if (customPrompt) {
+      // User provided a custom prompt - enhance it with their interests
+      const interestsContext = userInterests ? ` Context about user's interests: ${userInterests}.` : '';
+      imagePrompt = `${customPrompt}${interestsContext} Create a high-quality, professional image for a LinkedIn/Twitter post. Ultra high resolution.`;
+      
+      requestBody.messages = [
+        {
+          role: 'user',
+          content: imagePrompt
+        }
+      ];
+    } else if (postType === 'story' && avatarUrl) {
       // For story posts with avatar, edit the user's image into a workspace scene
+      const cameraAngles = ['over-the-shoulder shot', 'side profile', 'realistic phone camera shoot style', 'slightly elevated angle', 'eye-level perspective'];
+      const styles = ['realistic cinematic lighting with warm tones', ' realistic bright natural window light', 'realistic modern minimalist'];
+      const randomAngle = cameraAngles[Math.floor(Math.random() * cameraAngles.length)];
+      const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+      
       imagePrompt = `Transform this person's photo into a professional workspace realistic scene. Place them working at a clean, modern desk with a laptop. Use ${randomAngle} camera angle and ${randomStyle}. The scene should show focused work, with good composition and looking very realistic. Keep their face details and likeness intact. Background: minimal workspace with natural lighting. Ultra high quality, iphone camera shoot.`;
       
       requestBody.messages = [
@@ -73,6 +83,11 @@ serve(async (req) => {
       ];
     } else {
       // Default professional image with creativity
+      const cameraAngles = ['over-the-shoulder shot', 'side profile', 'realistic phone camera shoot style', 'slightly elevated angle', 'eye-level perspective'];
+      const styles = ['realistic cinematic lighting with warm tones', ' realistic bright natural window light', 'realistic modern minimalist'];
+      const randomAngle = cameraAngles[Math.floor(Math.random() * cameraAngles.length)];
+      const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+      
       imagePrompt = `Create a striking professional image for a social media post. Use ${randomAngle} and ${randomStyle}. Incorporate abstract shapes, smooth gradients, or minimal geometric patterns with a sophisticated color palette. Style: modern, bold, eye-catching. Ultra high resolution.`;
       
       requestBody.messages = [

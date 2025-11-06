@@ -12,6 +12,7 @@ import Pricing from "./pages/Pricing";
 import ContentCalendar from "./pages/ContentCalendar";
 import BrandVoice from "./pages/BrandVoice";
 import Analytics from "./pages/Analytics";
+import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/dashboard/calendar" element={<ContentCalendar />} />
           <Route path="/dashboard/brand-voice" element={<BrandVoice />} />
           <Route path="/dashboard/analytics" element={<Analytics />} />
+          <Route path="/dashboard/settings" element={<ProfileSettings />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/pricing" element={<Pricing />} />

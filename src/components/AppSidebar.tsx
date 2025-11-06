@@ -12,6 +12,7 @@ import {
   Megaphone,
   BarChart3,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -189,6 +190,18 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/10">
+        {/* Settings Link */}
+        {!collapsed && (
+          <Button 
+            onClick={() => navigate("/dashboard/settings")}
+            variant="ghost"
+            className="w-full mb-2 justify-start text-muted-foreground hover:text-foreground"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
+        )}
+
         {/* Pricing Link */}
         {!collapsed && (
           <Button 

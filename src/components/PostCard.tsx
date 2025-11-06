@@ -20,10 +20,11 @@ interface PostCardProps {
   onEdit: (postId: string, newContent: string) => void;
   onCopy: (content: string) => void;
   onGenerateImage: (postId: string) => void;
+  onOpenImagePrompt: (postId: string) => void;
   generatingImage?: boolean;
 }
 
-const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, generatingImage }: PostCardProps) => {
+const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onOpenImagePrompt, generatingImage }: PostCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
   const [copying, setCopying] = useState(false);
@@ -138,7 +139,7 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, gen
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onGenerateImage(post.id)}
+                onClick={() => onOpenImagePrompt(post.id)}
                 disabled={generatingImage || !!post.image_url}
                 className="hover:border-primary text-xs h-8"
               >

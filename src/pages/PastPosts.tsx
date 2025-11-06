@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Search, ArrowUpDown, Download } from "lucide-react";
 import PostCard from "@/components/PostCard";
+import ImagePromptDialog from "@/components/ImagePromptDialog";
 
 interface Post {
   id: string;
@@ -46,6 +47,8 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
   const [filterSaved, setFilterSaved] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [generatingImageForPost, setGeneratingImageForPost] = useState<string | null>(null);
+  const [imagePromptOpen, setImagePromptOpen] = useState(false);
+  const [selectedPostForImage, setSelectedPostForImage] = useState<string | null>(null);
 
   const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
 
@@ -104,7 +107,7 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
     }
   };
 
-  const handleGenerateImage = async (postId: string) => {
+  const handleGenerateImage = async (postId: string, customPrompt?: string) => {
     if (!isPremium) {
       toast.error("Image generation is a premium feature");
       return;
@@ -138,6 +141,8 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
           postContent: post.content,
           postType: postType,
           avatarUrl: profile?.avatar_url || null,
+          customPrompt: customPrompt || null,
+          userInterests: profile?.interests || null,
         },
       });
 
@@ -169,6 +174,19 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
       toast.error(error.message || "Failed to generate image");
     } finally {
       setGeneratingImageForPost(null);
+    }
+  };
+
+  const handleOpenImagePrompt = (postId: string) => {
+    setSelectedPostForImage(postId);
+    setImagePromptOpen(true);
+  };
+
+  const handleGenerateWithPrompt = async (prompt: string) => {
+    if (selectedPostForImage) {
+      await handleGenerateImage(selectedPostForImage, prompt);
+      setImagePromptOpen(false);
+      setSelectedPostForImage(null);
     }
   };
 
@@ -297,11 +315,19 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
               onEdit={handleEdit}
               onCopy={handleCopy}
               onGenerateImage={handleGenerateImage}
+              onOpenImagePrompt={handleOpenImagePrompt}
               generatingImage={generatingImageForPost === post.id}
             />
           ))}
         </div>
       )}
+
+      <ImagePromptDialog
+        open={imagePromptOpen}
+        onOpenChange={setImagePromptOpen}
+        onGenerate={handleGenerateWithPrompt}
+        generating={generatingImageForPost !== null}
+      />
     </div>
   );
 }
