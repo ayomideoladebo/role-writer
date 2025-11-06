@@ -399,8 +399,10 @@ const Dashboard = () => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 container mx-auto px-4 py-8">
-            {renderContent()}
+          <main className="flex-1 container mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto">
+              {renderContent()}
+            </div>
           </main>
         </div>
       </div>

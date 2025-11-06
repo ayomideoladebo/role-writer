@@ -76,15 +76,15 @@ export default function Inspiration({ profile }: InspirationProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Find Inspiration</h1>
+        <h1 className="text-3xl font-bold mb-3">Find Inspiration</h1>
         <p className="text-muted-foreground">
           Get AI-powered topic ideas tailored to your profile
         </p>
       </div>
 
-      <Card className="shadow-card border-2 bg-gradient-card">
+      <Card className="shadow-lg border-2 bg-gradient-card hover:shadow-xl transition-shadow">
         <CardHeader>
           <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">

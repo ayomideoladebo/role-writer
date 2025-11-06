@@ -35,13 +35,13 @@ interface GeneratePostProps {
 }
 
 export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdate }: GeneratePostProps) {
+  const location = useLocation();
   const [generating, setGenerating] = useState(false);
   const [topic, setTopic] = useState("");
   const [idea, setIdea] = useState("");
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["linkedin", "twitter"]);
   const [batchSize, setBatchSize] = useState(3);
-  const location = useLocation();
 
   const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
   const isEnterprise = profile?.subscription_tier === "enterprise";
@@ -193,9 +193,9 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {isPremium && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="model">AI Model {isEnterprise && <Badge variant="secondary" className="ml-2">Enterprise Exclusive</Badge>}</Label>
               <Select value={selectedModel} onValueChange={setSelectedModel} disabled={generating}>
                 <SelectTrigger id="model">
@@ -212,7 +212,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           )}
 
           {isPremium && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>Target Platforms <Badge variant="secondary" className="ml-2">Premium</Badge></Label>
               <div className="flex flex-wrap gap-2">
                 {["linkedin", "twitter"].map((platform) => (
@@ -237,7 +237,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="topic">Topic *</Label>
             <Input
               id="topic"
@@ -247,7 +247,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
               disabled={generating}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="idea">Your Ideas (optional)</Label>
             <Textarea
               id="idea"
@@ -261,7 +261,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           <Button
             onClick={generatePosts}
             disabled={generating || !topic.trim()}
-            className="w-full bg-primary hover:opacity-90"
+            className="w-full bg-primary hover:opacity-90 h-12"
           >
             {generating ? (
               <>
@@ -277,7 +277,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
           </Button>
           {isPremium && (
             <>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="batch-size">Batch Size <Badge variant="secondary" className="ml-2">{isEnterprise ? "Up to 20" : "Up to 5"}</Badge></Label>
                 <Select value={batchSize.toString()} onValueChange={(v) => setBatchSize(Number(v))} disabled={generating}>
                   <SelectTrigger id="batch-size">

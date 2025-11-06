@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, Calendar, Crown, Sparkles } from "lucide-react";
+import { BarChart3, TrendingUp, Calendar, Crown, Sparkles, Activity, Target, Clock, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Progress } from "@/components/ui/progress";
 
 interface Profile {
   subscription_tier: string;
@@ -81,6 +82,7 @@ export default function Analytics() {
   }, [navigate]);
 
   const isPremium = profile?.subscription_tier !== "free";
+  const isEnterprise = profile?.subscription_tier === "enterprise";
 
   const getWeekPosts = () => {
     const weekAgo = new Date();
@@ -94,12 +96,42 @@ export default function Analytics() {
     return posts.filter((p) => new Date(p.created_at) >= monthAgo).length;
   };
 
+  const getTodayPosts = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return posts.filter((p) => new Date(p.created_at) >= today).length;
+  };
+
+  const getAveragePostsPerWeek = () => {
+    if (posts.length === 0) return 0;
+    const oldestPost = new Date(posts[posts.length - 1].created_at);
+    const weeksSinceStart = Math.max(1, Math.ceil((Date.now() - oldestPost.getTime()) / (7 * 24 * 60 * 60 * 1000)));
+    return Math.round((posts.length / weeksSinceStart) * 10) / 10;
+  };
+
+  const getBestPostingDay = () => {
+    const dayCount: Record<string, number> = {};
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    posts.forEach((post) => {
+      const day = days[new Date(post.created_at).getDay()];
+      dayCount[day] = (dayCount[day] || 0) + 1;
+    });
+    return Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+  };
+
   const getPlatformBreakdown = () => {
     const breakdown: Record<string, number> = {};
     posts.forEach((post) => {
       breakdown[post.platform] = (breakdown[post.platform] || 0) + 1;
     });
     return breakdown;
+  };
+
+  const getEngagementScore = () => {
+    // Simple engagement calculation based on post frequency and consistency
+    const weekPosts = getWeekPosts();
+    const avgPosts = getAveragePostsPerWeek();
+    return Math.min(100, Math.round((weekPosts / Math.max(avgPosts, 1)) * 50 + (posts.length > 0 ? 50 : 0)));
   };
 
   if (loading) {
@@ -163,113 +195,182 @@ export default function Analytics() {
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="lg:hidden" />
-                <div className="p-2 bg-primary rounded-xl">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+                <div className="p-2 bg-gradient-to-br from-primary to-primary/70 rounded-xl shadow-lg">
+                  <BarChart3 className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold bg-primary bg-clip-text text-transparent flex items-center gap-2">
+                  <h1 className="text-xl font-bold flex items-center gap-2">
                     Advanced Analytics
-                    <Badge variant="secondary">Premium</Badge>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                      {isEnterprise ? 'Enterprise' : 'Premium'}
+                    </Badge>
                   </h1>
                   <p className="text-xs text-muted-foreground">
-                    Deep insights into your content performance
+                    Deep insights & performance tracking for your content
                   </p>
                 </div>
               </div>
             </div>
           </header>
           <main className="flex-1 p-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">This Week</CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="max-w-7xl mx-auto space-y-8">
+              {/* Key Metrics */}
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Posts Today</CardTitle>
+                    <Clock className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{getWeekPosts()}</div>
-                    <p className="text-xs text-muted-foreground">Posts created</p>
+                    <div className="text-3xl font-bold">{getTodayPosts()}</div>
+                    <p className="text-xs text-muted-foreground mt-1">Created today</p>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">This Month</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">This Week</CardTitle>
+                    <Calendar className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{getMonthPosts()}</div>
-                    <p className="text-xs text-muted-foreground">Posts created</p>
+                    <div className="text-3xl font-bold">{getWeekPosts()}</div>
+                    <p className="text-xs text-muted-foreground mt-1">Last 7 days</p>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Growth Rate</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{growthRate > 0 ? '+' : ''}{growthRate}%</div>
-                    <p className="text-xs text-muted-foreground">vs last month</p>
+                    <div className="text-3xl font-bold">{getMonthPosts()}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <span className={growthRate >= 0 ? "text-green-500" : "text-red-500"}>
+                        {growthRate > 0 ? '+' : ''}{growthRate}%
+                      </span> vs last month
+                    </p>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Posts</CardTitle>
+                    <BarChart3 className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{posts.length}</div>
-                    <p className="text-xs text-muted-foreground">All time</p>
+                    <div className="text-3xl font-bold">{posts.length}</div>
+                    <p className="text-xs text-muted-foreground mt-1">All time</p>
                   </CardContent>
                 </Card>
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Platform Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(platformBreakdown).map(([platform, count]) => (
-                      <div key={platform} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-3 h-3 rounded-full ${
-                              platform === "linkedin"
-                                ? "bg-blue-500"
-                                : platform === "twitter"
-                                ? "bg-sky-500"
-                                : platform === "instagram"
-                                ? "bg-pink-500"
-                                : "bg-indigo-500"
-                            }`}
-                          />
-                          <span className="capitalize font-medium">{platform}</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-muted-foreground">{count} posts</span>
-                          <div className="w-32 bg-muted rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${
-                                platform === "linkedin"
-                                  ? "bg-blue-500"
-                                  : platform === "twitter"
-                                  ? "bg-sky-500"
-                                  : platform === "instagram"
-                                  ? "bg-pink-500"
-                                  : "bg-indigo-500"
-                              }`}
-                              style={{ width: `${(count / posts.length) * 100}%` }}
-                            />
-                          </div>
-                        </div>
+              {/* Performance Insights */}
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-primary" />
+                      Posting Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Engagement Score</span>
+                        <span className="text-sm font-bold text-primary">{getEngagementScore()}%</span>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      <Progress value={getEngagementScore()} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Based on posting consistency and frequency
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Avg. Posts/Week</p>
+                        <p className="text-2xl font-bold">{getAveragePostsPerWeek()}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Best Day</p>
+                        <p className="text-2xl font-bold">{getBestPostingDay()}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5 text-primary" />
+                      Platform Performance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {Object.entries(platformBreakdown).map(([platform, count]) => (
+                        <div key={platform}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-3 h-3 rounded-full ${
+                                  platform === "linkedin"
+                                    ? "bg-[#0A66C2]"
+                                    : platform === "twitter"
+                                    ? "bg-[#1DA1F2]"
+                                    : "bg-primary"
+                                }`}
+                              />
+                              <span className="capitalize font-medium text-sm">{platform}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">{count} posts</span>
+                              <span className="text-sm font-bold">{Math.round((count / posts.length) * 100)}%</span>
+                            </div>
+                          </div>
+                          <Progress 
+                            value={(count / posts.length) * 100} 
+                            className="h-2"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Enterprise-Only Advanced Features */}
+              {isEnterprise && (
+                <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Crown className="w-5 h-5 text-amber-500" />
+                      Enterprise Insights
+                      <Badge variant="secondary" className="ml-auto bg-amber-500/10 text-amber-600 border-amber-500/20">
+                        Coming Soon
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="text-center p-4 bg-card/50 rounded-lg">
+                        <Zap className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+                        <h4 className="font-semibold mb-1">Peak Times</h4>
+                        <p className="text-xs text-muted-foreground">AI-powered optimal posting schedule</p>
+                      </div>
+                      <div className="text-center p-4 bg-card/50 rounded-lg">
+                        <TrendingUp className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+                        <h4 className="font-semibold mb-1">Predictive Analytics</h4>
+                        <p className="text-xs text-muted-foreground">Forecast engagement & reach</p>
+                      </div>
+                      <div className="text-center p-4 bg-card/50 rounded-lg">
+                        <Target className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+                        <h4 className="font-semibold mb-1">Competitor Insights</h4>
+                        <p className="text-xs text-muted-foreground">Industry benchmarking & trends</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </main>
         </div>

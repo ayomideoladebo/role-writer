@@ -233,14 +233,14 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
     });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Past Posts</h1>
+        <h1 className="text-3xl font-bold mb-3">Past Posts</h1>
         <p className="text-muted-foreground">Browse, edit, and manage your generated posts</p>
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
