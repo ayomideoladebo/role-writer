@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, CreditCard, Search, Package, TrendingUp, Calendar, AlertTriangle, Activity, BarChart3, ArrowLeft, DollarSign, Crown, Zap, Settings, Linkedin, Twitter } from "lucide-react";
+import { Shield, Users, CreditCard, Search, Package, TrendingUp, Calendar, AlertTriangle, Activity, BarChart3, ArrowLeft, DollarSign, Crown, Zap, Settings, Linkedin, Twitter, Download, Filter, Trash2, UserPlus, FileText } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Profile {
   id: string;
@@ -34,6 +36,7 @@ interface Post {
   platform: string;
   content: string;
   created_at: string;
+  image_url?: string;
 }
 
 interface SystemStats {
@@ -64,6 +67,8 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [filterTier, setFilterTier] = useState<string>("all");
   const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -203,12 +208,16 @@ export default function AdminDashboard() {
       };
 
       const config = tierConfig[tier] || tierConfig.free;
+      
+      // Get current user to preserve credits if higher than new tier
+      const user = users.find((u) => u.id === userId);
+      const preservedCredits = user && user.credits > config.credits ? user.credits : config.credits;
 
       const { error } = await supabase
         .from("profiles")
         .update({
           subscription_tier: tier,
-          credits: config.credits,
+          credits: preservedCredits,
           monthly_post_limit: config.postLimit,
         })
         .eq("id", userId);
@@ -217,7 +226,7 @@ export default function AdminDashboard() {
 
       toast({
         title: "Success",
-        description: `Subscription updated to ${tier}`,
+        description: `Subscription updated to ${tier}${preservedCredits > config.credits ? ' (credits preserved)' : ''}`,
       });
 
       fetchAllData();
@@ -286,11 +295,116 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.id.includes(searchQuery)
-  );
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = user.email?.toLowerCase().includes(searchQuery.toLowerCase()) || user.id.includes(searchQuery);
+    const matchesTier = filterTier === "all" || user.subscription_tier === filterTier;
+    return matchesSearch && matchesTier;
+  });
+
+  const exportToCSV = () => {
+    const headers = ["Email", "Industry", "Subscription", "Credits", "Post Limit", "Role", "Joined"];
+    const rows = users.map(user => [
+      user.email,
+      user.industry || "N/A",
+      user.subscription_tier,
+      user.credits,
+      user.monthly_post_limit,
+      user.role || "User",
+      new Date(user.created_at).toLocaleDateString()
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Success",
+      description: "Users exported to CSV",
+    });
+  };
+
+  const bulkUpdateSubscription = async (tier: string) => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "Error",
+        description: "No users selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      for (const userId of selectedUsers) {
+        await updateSubscription(userId, tier);
+      }
+      setSelectedUsers([]);
+      toast({
+        title: "Success",
+        description: `${selectedUsers.length} users updated to ${tier}`,
+      });
+    } catch (error) {
+      console.error("Error in bulk update:", error);
+    }
+  };
+
+  const bulkAddCredits = async (amount: number) => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "Error",
+        description: "No users selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      for (const userId of selectedUsers) {
+        await updateCredits(userId, amount);
+      }
+      setSelectedUsers([]);
+      toast({
+        title: "Success",
+        description: `Added ${amount} credits to ${selectedUsers.length} users`,
+      });
+    } catch (error) {
+      console.error("Error in bulk credit update:", error);
+    }
+  };
+
+  const deletePost = async (postId: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", postId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Post deleted successfully",
+      });
+      fetchAllData();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
+    }
+  };
 
   const makeAdmin = async (userId: string) => {
     try {
@@ -542,46 +656,127 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* User Management Table */}
-        <Card className="hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50 border-primary/10">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary" />
-                  User Management
-                </CardTitle>
-                <CardDescription>Manage user accounts and subscription tiers</CardDescription>
-              </div>
-              <div className="relative w-72">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by email or ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-            </div>
-          </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Industry</TableHead>
-                <TableHead>Subscription</TableHead>
-                <TableHead>Credits</TableHead>
-                <TableHead>Post Limit</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.email}</TableCell>
+        {/* Tabs for different sections */}
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="w-4 h-4" />
+              User Management
+            </TabsTrigger>
+            <TabsTrigger value="posts" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Post Management
+            </TabsTrigger>
+          </TabsList>
+
+          {/* User Management Tab */}
+          <TabsContent value="users" className="space-y-4">
+            <Card className="hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50 border-primary/10">
+              <CardHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="w-5 h-5 text-primary" />
+                        User Management
+                      </CardTitle>
+                      <CardDescription>Manage user accounts and subscription tiers</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={exportToCSV} variant="outline" size="sm">
+                        <Download className="w-4 h-4 mr-2" />
+                        Export CSV
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by email or ID..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <Select value={filterTier} onValueChange={setFilterTier}>
+                      <SelectTrigger className="w-full sm:w-40">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue placeholder="Filter by tier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Tiers</SelectItem>
+                        <SelectItem value="free">Free</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {selectedUsers.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                      <Badge variant="secondary" className="mr-2">
+                        {selectedUsers.length} selected
+                      </Badge>
+                      <Button size="sm" onClick={() => bulkUpdateSubscription("premium")} variant="outline">
+                        Upgrade to Premium
+                      </Button>
+                      <Button size="sm" onClick={() => bulkAddCredits(100)} variant="outline">
+                        +100 Credits
+                      </Button>
+                      <Button size="sm" onClick={() => bulkAddCredits(500)} variant="outline">
+                        +500 Credits
+                      </Button>
+                      <Button size="sm" onClick={() => setSelectedUsers([])} variant="ghost">
+                        Clear Selection
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedUsers(filteredUsers.map(u => u.id));
+                            } else {
+                              setSelectedUsers([]);
+                            }
+                          }}
+                        />
+                      </TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Industry</TableHead>
+                      <TableHead>Subscription</TableHead>
+                      <TableHead>Credits</TableHead>
+                      <TableHead>Post Limit</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedUsers.includes(user.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedUsers([...selectedUsers, user.id]);
+                              } else {
+                                setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
                     {user.industry ? (
                       <Badge variant="outline">{user.industry}</Badge>
@@ -671,13 +866,91 @@ export default function AdminDashboard() {
                         Delete
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        </Card>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Post Management Tab */}
+          <TabsContent value="posts" className="space-y-4">
+            <Card className="hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50 border-primary/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Post Management
+                </CardTitle>
+                <CardDescription>View and manage all generated posts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User Email</TableHead>
+                      <TableHead>Platform</TableHead>
+                      <TableHead>Content</TableHead>
+                      <TableHead>Image</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {posts.slice(0, 50).map((post) => {
+                      const user = users.find(u => u.id === post.user_id);
+                      return (
+                        <TableRow key={post.id}>
+                          <TableCell className="font-medium">
+                            {user?.email || "Unknown"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="gap-1">
+                              {post.platform === "LinkedIn" ? (
+                                <Linkedin className="w-3 h-3" />
+                              ) : (
+                                <Twitter className="w-3 h-3" />
+                              )}
+                              {post.platform}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-md truncate">
+                            {post.content.substring(0, 100)}...
+                          </TableCell>
+                          <TableCell>
+                            {post.image_url ? (
+                              <Badge variant="secondary">Has Image</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">No image</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deletePost(post.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                {posts.length > 50 && (
+                  <p className="text-sm text-muted-foreground text-center mt-4">
+                    Showing 50 of {posts.length} posts
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

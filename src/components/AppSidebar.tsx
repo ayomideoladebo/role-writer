@@ -187,55 +187,70 @@ export function AppSidebar() {
             </nav>
           </div>
         )}
-      </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border/10">
-        {/* Settings Link */}
-        {!collapsed && (
-          <Button 
-            onClick={() => navigate("/dashboard/settings")}
-            variant="ghost"
-            className="w-full mb-2 justify-start text-muted-foreground hover:text-foreground"
+        {/* ACCOUNT Section */}
+        <div className="mt-auto pt-6 space-y-1">
+          {!collapsed && (
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+              ACCOUNT
+            </p>
+          )}
+          <NavLink
+            to="/dashboard/settings"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`
+            }
           >
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </Button>
-        )}
+            <Settings className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="text-sm font-medium">Settings</span>}
+          </NavLink>
 
-        {/* Pricing Link */}
-        {!collapsed && (
-          <Button 
-            onClick={() => navigate("/pricing")}
-            variant="ghost"
-            className="w-full mb-2 justify-start text-muted-foreground hover:text-foreground"
+          <NavLink
+            to="/pricing"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`
+            }
           >
-            <CreditCard className="w-4 h-4 mr-2" />
-            Pricing
-          </Button>
-        )}
+            <CreditCard className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="text-sm font-medium">Pricing</span>}
+          </NavLink>
 
-        {/* Upgrade to Pro Button */}
-        {!collapsed && profile?.subscription_tier === "free" && (
-          <Button 
-            onClick={() => navigate("/pricing")}
-            className="w-full mb-3 bg-primary hover:opacity-90 text-white font-medium"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Upgrade to Pro
-          </Button>
-        )}
+          {profile?.subscription_tier === "free" && (
+            <Button 
+              onClick={() => navigate("/pricing")}
+              className="w-full mt-2 bg-primary hover:opacity-90"
+            >
+              {!collapsed ? (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Upgrade to Pro
+                </>
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+            </Button>
+          )}
 
-        {/* Logout Button */}
-        {!collapsed && (
           <Button 
             onClick={handleLogout}
             variant="ghost"
-            className="w-full mb-2 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="w-full mt-2 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="text-sm font-medium">Logout</span>}
           </Button>
-        )}
+        </div>
+      </SidebarContent>
+
+      <SidebarFooter className="p-3 border-t border-border/10">
 
         {/* User Profile */}
         <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/50 cursor-pointer">
