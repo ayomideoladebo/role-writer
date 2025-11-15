@@ -47,7 +47,7 @@ const Index = () => {
                 <span className="block mt-2 bg-primary bg-clip-text text-transparent">
                   Twitter & Linkedin
                 </span>
-                <span className="block mt-2">In Seconds</span>
+                <span className="block mt-2"> Post In Seconds</span>
               </h1>
               
               {/* Subheading */}

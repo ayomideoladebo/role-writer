@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Bookmark, Linkedin, Twitter, TrendingUp, Zap, Crown, Calendar } from "lucide-react";
-import ContentCalendar from "@/components/ContentCalendar";
-import BrandVoiceSettings from "@/components/BrandVoiceSettings";
+import { lazy, Suspense } from "react";
+const ContentCalendar = lazy(() => import("@/components/ContentCalendar"));
+const BrandVoiceSettings = lazy(() => import("@/components/BrandVoiceSettings"));
 
 interface Post {
   id: string;
@@ -176,14 +177,18 @@ export default function ContentInsights({ posts, profile, onProfileUpdate }: Con
       </div>
 
       {/* Content Calendar */}
-      <ContentCalendar posts={posts} isPremium={isPremium} />
+      <Suspense fallback={<div className="flex items-center justify-center py-8"><Calendar className="w-6 h-6 animate-spin text-primary" /></div>}>
+        <ContentCalendar posts={posts} isPremium={isPremium} />
+      </Suspense>
 
       {/* Brand Voice Settings */}
-      <BrandVoiceSettings 
-        brandVoice={profile?.brand_voice || null} 
-        isPremium={isPremium}
-        onUpdate={onProfileUpdate}
-      />
+      <Suspense fallback={<div className="flex items-center justify-center py-8"><Crown className="w-6 h-6 animate-spin text-primary" /></div>}>
+        <BrandVoiceSettings 
+          brandVoice={profile?.brand_voice || null} 
+          isPremium={isPremium}
+          onUpdate={onProfileUpdate}
+        />
+      </Suspense>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,10 @@ import { toast } from "sonner";
 import { LogOut, Settings, RefreshCw, Upload, User, Zap, Sparkles } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import Inspiration from "./Inspiration";
-import GeneratePost from "./GeneratePost";
-import ContentInsights from "./ContentInsights";
-import PastPosts from "./PastPosts";
+const Inspiration = lazy(() => import("./Inspiration"));
+const GeneratePost = lazy(() => import("./GeneratePost"));
+const ContentInsights = lazy(() => import("./ContentInsights"));
+const PastPosts = lazy(() => import("./PastPosts"));
 
 interface Post {
   id: string;
@@ -104,8 +104,8 @@ const Dashboard = () => {
       avatar_url: profileData?.avatar_url || null,
     });
 
-    // Fetch posts and wait for completion
-    await fetchPosts();
+    // Start fetching posts in the background and render immediately
+    fetchPosts();
     setLoading(false);
   };
 
@@ -115,7 +115,7 @@ const Dashboard = () => {
 
     const { data: postsData } = await supabase
       .from("posts")
-      .select("*")
+      .select("id, platform, content, is_saved, created_at, image_url")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -290,7 +290,9 @@ const Dashboard = () => {
           {/* Main Content */}
           <main className="flex-1 container mx-auto px-6 py-8">
             <div className="max-w-7xl mx-auto">
-              {renderContent()}
+              <Suspense fallback={<div className="flex items-center justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-primary" /></div>}>
+                {renderContent()}
+              </Suspense>
             </div>
           </main>
         </div>
