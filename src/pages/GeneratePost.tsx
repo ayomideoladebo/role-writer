@@ -9,8 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, Lightbulb, Zap, Crown } from "lucide-react";
-import PremiumBanner from "@/components/PremiumBanner";
+import { Sparkles, RefreshCw, Lightbulb, Zap } from "lucide-react";
 
 interface Profile {
   role: string;
@@ -171,14 +170,6 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
         </p>
       </div>
 
-      {profile && profile.credits < 50 && (
-        <PremiumBanner type="low-credits" credits={profile.credits} dismissible />
-      )}
-
-      {!isPremium && (
-        <PremiumBanner type="feature-locked" featureName="Advanced AI Models & Batch Generation" dismissible />
-      )}
-
       <Card className="shadow-card border-2 bg-gradient-card">
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -310,16 +301,6 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
                 )}
               </Button>
             </>
-          )}
-          {!isPremium && (
-            <Button
-              onClick={() => toast.info("Upgrade to Premium for batch generation")}
-              variant="outline"
-              className="w-full"
-            >
-              <Crown className="w-4 h-4 mr-2" />
-              Unlock Batch Generation (Premium)
-            </Button>
           )}
         </CardContent>
       </Card>
