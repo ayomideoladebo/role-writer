@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { 
   Search, 
@@ -23,7 +24,10 @@ import {
   Calendar,
   Lightbulb,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Wand2,
+  Copy,
+  ArrowRight
 } from "lucide-react";
 
 interface ScoreCategory {
@@ -41,6 +45,13 @@ interface AnalysisResult {
   improvements: string[];
 }
 
+interface PostIdea {
+  title: string;
+  content: string;
+  targetArea: string;
+  platform: string;
+}
+
 export default function ScanOptimize() {
   const navigate = useNavigate();
   const [platform, setPlatform] = useState<"linkedin" | "twitter">("linkedin");
@@ -49,6 +60,8 @@ export default function ScanOptimize() {
   const [stats, setStats] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [generatingIdeas, setGeneratingIdeas] = useState(false);
+  const [postIdeas, setPostIdeas] = useState<PostIdea[]>([]);
 
   const handleAnalyze = async () => {
     if (!bio.trim() && !posts.trim()) {
@@ -121,6 +134,56 @@ export default function ScanOptimize() {
       <MessageSquare className="w-5 h-5" />
     ];
     return icons[index] || <Sparkles className="w-5 h-5" />;
+  };
+
+  const handleGeneratePostIdeas = async () => {
+    if (!result) return;
+
+    setGeneratingIdeas(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please log in to use this feature");
+        return;
+      }
+
+      // Find weakest categories (score < 70)
+      const weakAreas = result.categories
+        .filter(c => c.score < 70)
+        .map(c => c.name);
+
+      const { data, error } = await supabase.functions.invoke("generate-improvement-posts", {
+        body: {
+          platform,
+          weakAreas,
+          improvements: result.improvements,
+          tips: result.tips,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      setPostIdeas(data.postIdeas || []);
+      toast.success("Post ideas generated!");
+    } catch (error: any) {
+      console.error("Generation error:", error);
+      toast.error(error.message || "Failed to generate post ideas");
+    } finally {
+      setGeneratingIdeas(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
+
+  const useAsPost = (content: string) => {
+    navigate("/dashboard/generate", { state: { topic: content.substring(0, 100), idea: content } });
   };
 
   return (
@@ -406,12 +469,109 @@ export default function ScanOptimize() {
                     </TabsContent>
                   </Tabs>
 
+                  {/* Generate Post Ideas Section */}
+                  <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Wand2 className="w-5 h-5 text-primary" />
+                        Generate Improvement Posts
+                      </CardTitle>
+                      <CardDescription>
+                        Get AI-generated post ideas specifically designed to improve your weak areas
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        onClick={handleGeneratePostIdeas}
+                        disabled={generatingIdeas}
+                        className="w-full"
+                        size="lg"
+                      >
+                        {generatingIdeas ? (
+                          <>
+                            <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                            Generating Post Ideas...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-5 h-5 mr-2" />
+                            Generate 5 Post Ideas for My Weak Areas
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Display Generated Post Ideas */}
+                  {postIdeas.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Lightbulb className="w-5 h-5 text-yellow-500" />
+                          Your Improvement Post Ideas
+                        </CardTitle>
+                        <CardDescription>
+                          Posts designed to address your weak areas and boost your profile
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ScrollArea className="h-[500px] pr-4">
+                          <div className="space-y-4">
+                            {postIdeas.map((idea, index) => (
+                              <Card key={index} className="bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-start justify-between gap-4 mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="capitalize">
+                                        {idea.platform}
+                                      </Badge>
+                                      <Badge variant="secondary" className="text-xs">
+                                        Targets: {idea.targetArea}
+                                      </Badge>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      Idea #{index + 1}
+                                    </span>
+                                  </div>
+                                  
+                                  <h4 className="font-semibold mb-2 text-sm">{idea.title}</h4>
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap mb-4">
+                                    {idea.content}
+                                  </p>
+                                  
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => copyToClipboard(idea.content)}
+                                    >
+                                      <Copy className="w-3 h-3 mr-1" />
+                                      Copy
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => useAsPost(idea.content)}
+                                    >
+                                      <ArrowRight className="w-3 h-3 mr-1" />
+                                      Use in Generator
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Analyze Again */}
                   <div className="text-center">
                     <Button
                       variant="outline"
                       onClick={() => {
                         setResult(null);
+                        setPostIdeas([]);
                         setBio("");
                         setPosts("");
                         setStats("");
