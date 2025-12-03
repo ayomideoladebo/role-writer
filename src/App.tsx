@@ -13,6 +13,7 @@ import ContentCalendar from "./pages/ContentCalendar";
 import BrandVoice from "./pages/BrandVoice";
 import Analytics from "./pages/Analytics";
 import ProfileSettings from "./pages/ProfileSettings";
+import ScanOptimize from "./pages/ScanOptimize";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/dashboard/brand-voice" element={<BrandVoice />} />
           <Route path="/dashboard/analytics" element={<Analytics />} />
           <Route path="/dashboard/settings" element={<ProfileSettings />} />
+          <Route path="/dashboard/scan-optimize" element={<ScanOptimize />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/pricing" element={<Pricing />} />
