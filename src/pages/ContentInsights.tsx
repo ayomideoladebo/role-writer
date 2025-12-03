@@ -176,19 +176,23 @@ export default function ContentInsights({ posts, profile, onProfileUpdate }: Con
         </Card>
       </div>
 
-      {/* Content Calendar */}
-      <Suspense fallback={<div className="flex items-center justify-center py-8"><Calendar className="w-6 h-6 animate-spin text-primary" /></div>}>
-        <ContentCalendar posts={posts} isPremium={isPremium} />
-      </Suspense>
+      {/* Content Calendar - Only show for premium users */}
+      {isPremium && (
+        <Suspense fallback={<div className="flex items-center justify-center py-8"><Calendar className="w-6 h-6 animate-spin text-primary" /></div>}>
+          <ContentCalendar posts={posts} isPremium={isPremium} />
+        </Suspense>
+      )}
 
-      {/* Brand Voice Settings */}
-      <Suspense fallback={<div className="flex items-center justify-center py-8"><Crown className="w-6 h-6 animate-spin text-primary" /></div>}>
-        <BrandVoiceSettings 
-          brandVoice={profile?.brand_voice || null} 
-          isPremium={isPremium}
-          onUpdate={onProfileUpdate}
-        />
-      </Suspense>
+      {/* Brand Voice Settings - Only show for premium users */}
+      {isPremium && (
+        <Suspense fallback={<div className="flex items-center justify-center py-8"><Crown className="w-6 h-6 animate-spin text-primary" /></div>}>
+          <BrandVoiceSettings 
+            brandVoice={profile?.brand_voice || null} 
+            isPremium={isPremium}
+            onUpdate={onProfileUpdate}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
