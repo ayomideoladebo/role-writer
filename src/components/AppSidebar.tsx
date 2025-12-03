@@ -13,6 +13,7 @@ import {
   BarChart3,
   LogOut,
   Settings,
+  Search,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -32,6 +33,7 @@ const createItems = [
   { title: "Generate Post", url: "/dashboard/generate", icon: Sparkles },
   { title: "Inspiration", url: "/dashboard/inspiration", icon: Lightbulb },
   { title: "Past Posts", url: "/dashboard/posts", icon: Edit },
+  { title: "Scan & Optimize", url: "/dashboard/scan-optimize", icon: Search },
 ];
 
 const premiumItems = [
