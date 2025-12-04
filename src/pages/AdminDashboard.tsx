@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, Search, ArrowLeft, Linkedin, Twitter, Download, Filter, Trash2, FileText, ChevronDown, LayoutGrid, List } from "lucide-react";
+import { Shield, Users, Search, Linkedin, Twitter, Filter, Trash2, FileText, LayoutGrid, List, BarChart3 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,6 +23,8 @@ import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { AdminUserCard } from "@/components/admin/AdminUserCard";
 import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminQuickActions } from "@/components/admin/AdminQuickActions";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminUserDetailSheet } from "@/components/admin/AdminUserDetailSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Profile {
@@ -82,6 +84,8 @@ export default function AdminDashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [postSearch, setPostSearch] = useState("");
   const [postPlatformFilter, setPostPlatformFilter] = useState<string>("all");
+  const [selectedUserDetail, setSelectedUserDetail] = useState<Profile | null>(null);
+  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -101,6 +105,15 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Calculate post counts per user
+  const userPostCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    posts.forEach(post => {
+      counts[post.user_id] = (counts[post.user_id] || 0) + 1;
+    });
+    return counts;
+  }, [posts]);
 
   useEffect(() => {
     checkAdminStatus();
@@ -499,34 +512,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen p-3 md:p-6 lg:p-8 bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/dashboard")}
-              className="shrink-0"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div>
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Admin Dashboard
-              </h1>
-              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                Manage users and monitor platform activity
-              </p>
-            </div>
-          </div>
-          <Badge variant="secondary" className="px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 border-primary/30 w-fit">
-            <Shield className="w-3 h-3 mr-1.5" />
-            Admin
-          </Badge>
-        </div>
-
+    <div className="min-h-screen bg-background">
+      <AdminHeader />
+      
+      <div className="p-3 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Stats Cards */}
         <AdminStatsCards stats={stats} />
 
@@ -542,32 +531,32 @@ export default function AdminDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="w-full grid grid-cols-3 h-auto">
-            <TabsTrigger value="users" className="gap-1.5 text-xs md:text-sm py-2">
-              <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          <TabsList className="w-full grid grid-cols-3 h-11 bg-muted/50">
+            <TabsTrigger value="users" className="gap-1.5 text-xs md:text-sm data-[state=active]:bg-background">
+              <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="posts" className="gap-1.5 text-xs md:text-sm py-2">
-              <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <TabsTrigger value="posts" className="gap-1.5 text-xs md:text-sm data-[state=active]:bg-background">
+              <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Posts</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-1.5 text-xs md:text-sm py-2">
-              <ChevronDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <TabsTrigger value="analytics" className="gap-1.5 text-xs md:text-sm data-[state=active]:bg-background">
+              <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
-            <Card className="bg-gradient-to-br from-card to-card/50 border-primary/10">
+            <Card className="border-0 shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base md:text-lg">User Management</CardTitle>
                     {!isMobile && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 p-1 bg-muted rounded-lg">
                         <Button
-                          variant={viewMode === "grid" ? "default" : "ghost"}
+                          variant={viewMode === "grid" ? "secondary" : "ghost"}
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => setViewMode("grid")}
@@ -575,7 +564,7 @@ export default function AdminDashboard() {
                           <LayoutGrid className="w-4 h-4" />
                         </Button>
                         <Button
-                          variant={viewMode === "table" ? "default" : "ghost"}
+                          variant={viewMode === "table" ? "secondary" : "ghost"}
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => setViewMode("table")}
@@ -587,17 +576,17 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search users..."
+                        placeholder="Search users by email..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 h-9"
+                        className="pl-9 h-10"
                       />
                     </div>
                     <Select value={filterTier} onValueChange={setFilterTier}>
-                      <SelectTrigger className="w-full sm:w-36 h-9">
-                        <Filter className="w-3.5 h-3.5 mr-1.5" />
+                      <SelectTrigger className="w-full sm:w-40 h-10">
+                        <Filter className="w-4 h-4 mr-2" />
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -608,27 +597,18 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  {selectedUsers.length > 0 && (
-                    <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
-                      <Badge variant="secondary" className="text-xs">
-                        {selectedUsers.length} selected
-                      </Badge>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedUsers([])}>
-                        Clear
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </CardHeader>
               <CardContent>
                 {viewMode === "grid" || isMobile ? (
-                  <ScrollArea className="h-[500px] md:h-[600px]">
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <ScrollArea className="h-[calc(100vh-450px)] min-h-[400px]">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {filteredUsers.map((user) => (
                         <AdminUserCard
                           key={user.id}
                           user={user}
                           isSelected={selectedUsers.includes(user.id)}
+                          postCount={userPostCounts[user.id] || 0}
                           onSelect={(selected) => {
                             if (selected) {
                               setSelectedUsers([...selectedUsers, user.id]);
@@ -641,12 +621,16 @@ export default function AdminDashboard() {
                           onMakeAdmin={makeAdmin}
                           onRemoveAdmin={removeAdmin}
                           onDelete={deleteUser}
+                          onViewDetails={(u) => {
+                            setSelectedUserDetail(u);
+                            setIsUserDetailOpen(true);
+                          }}
                         />
                       ))}
                     </div>
                   </ScrollArea>
                 ) : (
-                  <ScrollArea className="h-[600px]">
+                  <ScrollArea className="h-[calc(100vh-450px)] min-h-[400px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -665,13 +649,13 @@ export default function AdminDashboard() {
                           <TableHead>Email</TableHead>
                           <TableHead>Tier</TableHead>
                           <TableHead>Credits</TableHead>
-                          <TableHead>Joined</TableHead>
+                          <TableHead>Posts</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredUsers.map((user) => (
-                          <TableRow key={user.id}>
+                          <TableRow key={user.id} className="group">
                             <TableCell>
                               <Checkbox
                                 checked={selectedUsers.includes(user.id)}
@@ -686,31 +670,42 @@ export default function AdminDashboard() {
                             </TableCell>
                             <TableCell className="font-medium text-sm">
                               <div className="flex items-center gap-2">
-                                {user.email}
+                                <span className="truncate max-w-[200px]">{user.email}</span>
                                 {user.role === "admin" && (
                                   <Badge variant="default" className="h-5 text-[10px]">Admin</Badge>
                                 )}
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-xs capitalize">
                                 {user.subscription_tier}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={user.credits > 50 ? "default" : "destructive"} className="text-xs">
+                              <Badge variant={user.credits > 50 ? "secondary" : "destructive"} className="text-xs">
                                 {user.credits}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
-                              {new Date(user.created_at).toLocaleDateString()}
+                              {userPostCounts[user.id] || 0}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex gap-1 justify-end">
+                              <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  className="h-7 text-xs" 
+                                  onClick={() => {
+                                    setSelectedUserDetail(user);
+                                    setIsUserDetailOpen(true);
+                                  }}
+                                >
+                                  View
+                                </Button>
                                 <Button size="sm" className="h-7 text-xs" onClick={() => updateCredits(user.id, 100)}>
                                   +100
                                 </Button>
-                                <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteUser(user.id)}>
+                                <Button size="sm" variant="destructive" className="h-7 px-2" onClick={() => deleteUser(user.id)}>
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
                               </div>
@@ -730,22 +725,22 @@ export default function AdminDashboard() {
 
           {/* Posts Tab */}
           <TabsContent value="posts" className="space-y-4">
-            <Card className="bg-gradient-to-br from-card to-card/50 border-primary/10">
+            <Card className="border-0 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base md:text-lg">Post Management</CardTitle>
                 <div className="flex flex-col sm:flex-row gap-2 mt-3">
                   <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search posts..."
                       value={postSearch}
                       onChange={(e) => setPostSearch(e.target.value)}
-                      className="pl-9 h-9"
+                      className="pl-9 h-10"
                     />
                   </div>
                   <Select value={postPlatformFilter} onValueChange={setPostPlatformFilter}>
-                    <SelectTrigger className="w-full sm:w-36 h-9">
-                      <Filter className="w-3.5 h-3.5 mr-1.5" />
+                    <SelectTrigger className="w-full sm:w-40 h-10">
+                      <Filter className="w-4 h-4 mr-2" />
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -757,12 +752,12 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[500px] md:h-[600px]">
+                <ScrollArea className="h-[calc(100vh-500px)] min-h-[300px]">
                   <div className="space-y-3">
                     {filteredPosts.slice(0, 50).map((post) => {
                       const user = users.find(u => u.id === post.user_id);
                       return (
-                        <Card key={post.id} className="p-3 md:p-4">
+                        <Card key={post.id} className="p-3 md:p-4 hover:bg-muted/30 transition-colors">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -774,7 +769,7 @@ export default function AdminDashboard() {
                                   )}
                                   {post.platform}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-xs text-muted-foreground truncate max-w-[150px]">
                                   {user?.email || "Unknown user"}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
@@ -788,7 +783,7 @@ export default function AdminDashboard() {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={() => deletePost(post.id)}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -812,6 +807,19 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* User Detail Sheet */}
+      <AdminUserDetailSheet
+        user={selectedUserDetail}
+        open={isUserDetailOpen}
+        onOpenChange={setIsUserDetailOpen}
+        userPosts={selectedUserDetail ? (userPostCounts[selectedUserDetail.id] || 0) : 0}
+        onUpdateSubscription={updateSubscription}
+        onUpdateCredits={updateCredits}
+        onMakeAdmin={makeAdmin}
+        onRemoveAdmin={removeAdmin}
+        onDelete={deleteUser}
+      />
     </div>
   );
 }
