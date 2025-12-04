@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Users, Crown, Calendar, DollarSign, Zap, TrendingUp, Activity, Target } from "lucide-react";
 
 interface SystemStats {
@@ -25,103 +25,95 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
     {
       title: "Total Users",
       value: stats.totalUsers,
-      subtitle: `${stats.activeUsers} active (7d)`,
+      subtitle: `${stats.activeUsers} active`,
       icon: Users,
-      gradient: "from-card to-primary/5",
-      border: "border-primary/20",
+      color: "from-primary/20 to-primary/5",
+      iconBg: "bg-primary/10",
       iconColor: "text-primary",
-      valueColor: "bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent",
     },
     {
-      title: "Premium Users",
+      title: "Premium",
       value: stats.premiumUsers,
       subtitle: `${stats.enterpriseUsers} enterprise`,
       icon: Crown,
-      gradient: "from-card to-amber-500/5",
-      border: "border-amber-500/20",
+      color: "from-amber-500/20 to-amber-500/5",
+      iconBg: "bg-amber-500/10",
       iconColor: "text-amber-500",
-      valueColor: "text-amber-500",
     },
     {
       title: "Total Posts",
       value: stats.totalPosts,
       subtitle: `${stats.monthlyPosts} this month`,
       icon: Calendar,
-      gradient: "from-card to-blue-500/5",
-      border: "border-blue-500/20",
+      color: "from-blue-500/20 to-blue-500/5",
+      iconBg: "bg-blue-500/10",
       iconColor: "text-blue-500",
-      valueColor: "text-blue-500",
     },
     {
-      title: "Revenue Potential",
+      title: "Revenue",
       value: `$${stats.revenuePotential}`,
-      subtitle: "Monthly recurring",
+      subtitle: "MRR potential",
       icon: DollarSign,
-      gradient: "from-card to-green-500/5",
-      border: "border-green-500/20",
+      color: "from-green-500/20 to-green-500/5",
+      iconBg: "bg-green-500/10",
       iconColor: "text-green-500",
-      valueColor: "text-green-500",
     },
     {
-      title: "Total Credits",
+      title: "Credits",
       value: stats.totalCredits.toLocaleString(),
-      subtitle: "Across all users",
+      subtitle: "Total balance",
       icon: Zap,
-      gradient: "from-card to-purple-500/5",
-      border: "border-purple-500/20",
+      color: "from-purple-500/20 to-purple-500/5",
+      iconBg: "bg-purple-500/10",
       iconColor: "text-purple-500",
-      valueColor: "text-purple-500",
     },
     {
-      title: "Conversion Rate",
+      title: "Conversion",
       value: `${stats.conversionRate}%`,
       subtitle: "Free to paid",
       icon: TrendingUp,
-      gradient: "from-card to-emerald-500/5",
-      border: "border-emerald-500/20",
+      color: "from-emerald-500/20 to-emerald-500/5",
+      iconBg: "bg-emerald-500/10",
       iconColor: "text-emerald-500",
-      valueColor: "text-emerald-500",
     },
     {
-      title: "Posts Today",
+      title: "Today",
       value: stats.dailyPosts,
       subtitle: `${stats.avgPostsPerUser} avg/user`,
       icon: Activity,
-      gradient: "from-card to-cyan-500/5",
-      border: "border-cyan-500/20",
+      color: "from-cyan-500/20 to-cyan-500/5",
+      iconBg: "bg-cyan-500/10",
       iconColor: "text-cyan-500",
-      valueColor: "text-cyan-500",
     },
     {
       title: "Free Users",
       value: stats.freeUsers,
-      subtitle: "Potential upgrades",
+      subtitle: "Upgrade targets",
       icon: Target,
-      gradient: "from-card to-rose-500/5",
-      border: "border-rose-500/20",
+      color: "from-rose-500/20 to-rose-500/5",
+      iconBg: "bg-rose-500/10",
       iconColor: "text-rose-500",
-      valueColor: "text-rose-500",
     },
   ];
 
   return (
-    <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+    <div className="grid gap-2 md:gap-3 grid-cols-2 sm:grid-cols-4">
       {statCards.map((stat) => (
         <Card
           key={stat.title}
-          className={`hover:shadow-lg transition-all hover:scale-[1.02] bg-gradient-to-br ${stat.gradient} ${stat.border}`}
+          className={`group hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br ${stat.color} border-0 shadow-sm hover:shadow-md`}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3 md:p-4 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium truncate pr-2">
-              {stat.title}
-            </CardTitle>
-            <stat.icon className={`h-4 w-4 md:h-5 md:w-5 shrink-0 ${stat.iconColor}`} />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-4 md:pt-0">
-            <div className={`text-xl md:text-2xl lg:text-3xl font-bold ${stat.valueColor}`}>
-              {stat.value}
+          <CardContent className="p-3 md:p-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 md:p-2.5 rounded-xl ${stat.iconBg} transition-transform group-hover:scale-110`}>
+                <stat.icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.iconColor}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold truncate">{stat.value}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground truncate">{stat.title}</p>
+              </div>
             </div>
-            <p className="text-[10px] md:text-xs text-muted-foreground mt-1 truncate">
+            <p className="text-[10px] text-muted-foreground mt-2 truncate hidden sm:block">
               {stat.subtitle}
             </p>
           </CardContent>
