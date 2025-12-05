@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { renderFormattedText } from "@/lib/markdown";
+import { format } from "date-fns";
 
 interface PostCardProps {
   post: {
@@ -14,6 +16,8 @@ interface PostCardProps {
     is_saved: boolean;
     created_at: string;
     image_url?: string | null;
+    scheduled_for?: string | null;
+    status?: string;
   };
   onSave: (postId: string) => void;
   onDelete: (postId: string) => void;
@@ -21,10 +25,12 @@ interface PostCardProps {
   onCopy: (content: string) => void;
   onGenerateImage: (postId: string) => void;
   onOpenImagePrompt: (postId: string) => void;
+  onSchedule?: (postId: string) => void;
   generatingImage?: boolean;
+  isPremium?: boolean;
 }
 
-const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onOpenImagePrompt, generatingImage }: PostCardProps) => {
+const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onOpenImagePrompt, onSchedule, generatingImage, isPremium }: PostCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
   const [copying, setCopying] = useState(false);
@@ -56,13 +62,21 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
   return (
     <Card className="shadow-card hover:shadow-hover transition-all duration-300 border-2 bg-gradient-card">
       <CardHeader className="pb-3 sm:pb-6">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          {post.platform === "linkedin" ? (
-            <Linkedin className="w-4 h-4 sm:w-5 sm:h-5 text-[#0077B5]" />
-          ) : (
-            <Twitter className="w-4 h-4 sm:w-5 sm:h-5 text-[#1DA1F2]" />
+        <CardTitle className="flex items-center justify-between text-base sm:text-lg">
+          <div className="flex items-center gap-2">
+            {post.platform === "linkedin" ? (
+              <Linkedin className="w-4 h-4 sm:w-5 sm:h-5 text-[#0077B5]" />
+            ) : (
+              <Twitter className="w-4 h-4 sm:w-5 sm:h-5 text-[#1DA1F2]" />
+            )}
+            <span className="capitalize">{post.platform} Post</span>
+          </div>
+          {post.scheduled_for && post.status === 'scheduled' && (
+            <Badge variant="secondary" className="gap-1 text-xs">
+              <CalendarClock className="w-3 h-3" />
+              {format(new Date(post.scheduled_for), 'MMM d, h:mm a')}
+            </Badge>
           )}
-          <span className="capitalize">{post.platform} Post</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4">
@@ -136,6 +150,17 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
                 />
                 <span className="hidden sm:inline">{post.is_saved ? "Saved" : "Save"}</span>
               </Button>
+              {isPremium && onSchedule && !post.scheduled_for && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onSchedule(post.id)}
+                  className="hover:border-primary text-xs h-8"
+                >
+                  <CalendarClock className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Schedule</span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"

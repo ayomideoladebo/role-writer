@@ -24,6 +24,8 @@ interface Post {
   is_saved: boolean;
   created_at: string;
   image_url?: string | null;
+  scheduled_for?: string | null;
+  status?: string;
 }
 
 interface Profile {

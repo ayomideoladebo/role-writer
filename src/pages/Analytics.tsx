@@ -1,14 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, Calendar, Crown, Sparkles, Activity, Target, Clock, Zap } from "lucide-react";
+import { BarChart3, TrendingUp, Calendar, Crown, Sparkles, Activity, Target, Clock, Zap, FileText, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Progress } from "@/components/ui/progress";
+import { 
+  PostsOverTimeChart, 
+  PlatformDistributionChart, 
+  WeeklyActivityChart, 
+  EngagementTrendChart,
+  MetricCard 
+} from "@/components/AnalyticsCharts";
+import { format, subDays, startOfWeek, eachDayOfInterval } from "date-fns";
 
 interface Profile {
   subscription_tier: string;
@@ -18,6 +26,8 @@ interface Post {
   id: string;
   platform: string;
   created_at: string;
+  status?: string;
+  scheduled_for?: string;
 }
 
 export default function Analytics() {
@@ -133,6 +143,66 @@ export default function Analytics() {
     const avgPosts = getAveragePostsPerWeek();
     return Math.min(100, Math.round((weekPosts / Math.max(avgPosts, 1)) * 50 + (posts.length > 0 ? 50 : 0)));
   };
+
+  // Chart data calculations
+  const postsOverTimeData = useMemo(() => {
+    const last14Days = eachDayOfInterval({
+      start: subDays(new Date(), 13),
+      end: new Date()
+    });
+    
+    return last14Days.map(day => {
+      const dayStr = format(day, 'yyyy-MM-dd');
+      const count = posts.filter(p => 
+        format(new Date(p.created_at), 'yyyy-MM-dd') === dayStr
+      ).length;
+      return { date: format(day, 'MMM d'), posts: count };
+    });
+  }, [posts]);
+
+  const platformDistributionData = useMemo(() => {
+    const breakdown = getPlatformBreakdown();
+    return Object.entries(breakdown).map(([name, value]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value
+    }));
+  }, [posts]);
+
+  const weeklyActivityData = useMemo(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map(day => {
+      const dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day);
+      const adjustedIndex = dayIndex === 6 ? 0 : dayIndex + 1; // Convert to JS day index
+      
+      const linkedin = posts.filter(p => 
+        new Date(p.created_at).getDay() === adjustedIndex && 
+        p.platform.toLowerCase() === 'linkedin'
+      ).length;
+      
+      const twitter = posts.filter(p => 
+        new Date(p.created_at).getDay() === adjustedIndex && 
+        p.platform.toLowerCase() === 'twitter'
+      ).length;
+      
+      return { day, linkedin, twitter };
+    });
+  }, [posts]);
+
+  const engagementTrendData = useMemo(() => {
+    const weeks = ['W1', 'W2', 'W3', 'W4'];
+    return weeks.map((week, i) => {
+      const weekStart = subDays(new Date(), (4 - i) * 7);
+      const weekEnd = subDays(new Date(), (3 - i) * 7);
+      const weekPosts = posts.filter(p => {
+        const postDate = new Date(p.created_at);
+        return postDate >= weekStart && postDate < weekEnd;
+      }).length;
+      return { week, engagement: Math.min(100, weekPosts * 15 + 20) };
+    });
+  }, [posts]);
+
+  const scheduledPostsCount = posts.filter(p => p.status === 'scheduled').length;
+  const savedPostsCount = posts.filter(p => (p as any).is_saved).length;
 
   if (loading) {
     return (
@@ -336,6 +406,45 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Visual Charts Section */}
+              <div className="grid gap-6 lg:grid-cols-2">
+                <PostsOverTimeChart data={postsOverTimeData} />
+                <PlatformDistributionChart data={platformDistributionData} />
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                <WeeklyActivityChart data={weeklyActivityData} />
+                <EngagementTrendChart data={engagementTrendData} />
+              </div>
+
+              {/* Additional Metrics */}
+              <div className="grid gap-4 md:grid-cols-4">
+                <MetricCard 
+                  title="Scheduled Posts" 
+                  value={scheduledPostsCount} 
+                  icon={Calendar}
+                  description="Posts waiting to publish"
+                />
+                <MetricCard 
+                  title="Saved Posts" 
+                  value={savedPostsCount} 
+                  icon={Bookmark}
+                  description="Posts in your vault"
+                />
+                <MetricCard 
+                  title="Avg. Posts/Week" 
+                  value={getAveragePostsPerWeek()} 
+                  icon={FileText}
+                  change={growthRate}
+                />
+                <MetricCard 
+                  title="Engagement" 
+                  value={`${getEngagementScore()}%`} 
+                  icon={Activity}
+                  description="Based on consistency"
+                />
               </div>
 
               {/* Enterprise-Only Advanced Features */}
