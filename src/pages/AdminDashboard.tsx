@@ -249,18 +249,20 @@ export default function AdminDashboard() {
       const tierConfig: Record<string, { credits: number; postLimit: number }> = {
         free: { credits: 100, postLimit: 20 },
         premium: { credits: 500, postLimit: 100 },
-        enterprise: { credits: 2000, postLimit: 500 },
+        enterprise: { credits: 2000, postLimit: 1000 },
       };
 
       const config = tierConfig[tier] || tierConfig.free;
       const user = users.find((u) => u.id === userId);
-      const preservedCredits = user && user.credits > config.credits ? user.credits : config.credits;
+      
+      // Add remaining credits from previous plan to new plan's credits
+      const newCredits = user ? user.credits + config.credits : config.credits;
 
       const { error } = await supabase
         .from("profiles")
         .update({
           subscription_tier: tier,
-          credits: preservedCredits,
+          credits: newCredits,
           monthly_post_limit: config.postLimit,
         })
         .eq("id", userId);
@@ -269,7 +271,7 @@ export default function AdminDashboard() {
 
       toast({
         title: "Success",
-        description: `Subscription updated to ${tier}`,
+        description: `Subscription updated to ${tier}. ${user ? `${user.credits} existing credits + ${config.credits} new credits = ${newCredits} total` : ''}`,
       });
 
       fetchAllData();
