@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Search, ArrowUpDown, Download } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import ImagePromptDialog from "@/components/ImagePromptDialog";
+import { PostScheduleDialog } from "@/components/PostScheduleDialog";
 
 interface Post {
   id: string;
@@ -16,6 +17,8 @@ interface Post {
   is_saved: boolean;
   created_at: string;
   image_url?: string | null;
+  scheduled_for?: string | null;
+  status?: string;
 }
 
 interface Profile {
@@ -49,6 +52,9 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
   const [generatingImageForPost, setGeneratingImageForPost] = useState<string | null>(null);
   const [imagePromptOpen, setImagePromptOpen] = useState(false);
   const [selectedPostForImage, setSelectedPostForImage] = useState<string | null>(null);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedPostForSchedule, setSelectedPostForSchedule] = useState<Post | null>(null);
+  const [scheduling, setScheduling] = useState(false);
 
   const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
 
@@ -190,6 +196,40 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
     }
   };
 
+  const handleOpenScheduleDialog = (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      setSelectedPostForSchedule(post);
+      setScheduleDialogOpen(true);
+    }
+  };
+
+  const handleSchedulePost = async (scheduledFor: Date) => {
+    if (!selectedPostForSchedule) return;
+    
+    setScheduling(true);
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .update({ 
+          scheduled_for: scheduledFor.toISOString(),
+          status: 'scheduled'
+        })
+        .eq("id", selectedPostForSchedule.id);
+
+      if (error) throw error;
+
+      onPostsUpdate();
+      setScheduleDialogOpen(false);
+      setSelectedPostForSchedule(null);
+      toast.success("Post scheduled successfully!");
+    } catch (error: any) {
+      toast.error("Failed to schedule post");
+    } finally {
+      setScheduling(false);
+    }
+  };
+
   const handleExportPosts = (format: "csv" | "json") => {
     if (!isPremium) {
       toast.error("Export to CSV/JSON is a premium feature");
@@ -316,7 +356,9 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
               onCopy={handleCopy}
               onGenerateImage={handleGenerateImage}
               onOpenImagePrompt={handleOpenImagePrompt}
+              onSchedule={handleOpenScheduleDialog}
               generatingImage={generatingImageForPost === post.id}
+              isPremium={isPremium}
             />
           ))}
         </div>
@@ -328,6 +370,17 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
         onGenerate={handleGenerateWithPrompt}
         generating={generatingImageForPost !== null}
       />
+
+      {selectedPostForSchedule && (
+        <PostScheduleDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          postContent={selectedPostForSchedule.content}
+          platform={selectedPostForSchedule.platform}
+          onSchedule={handleSchedulePost}
+          isLoading={scheduling}
+        />
+      )}
     </div>
   );
 }
