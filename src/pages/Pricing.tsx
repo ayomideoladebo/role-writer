@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { UpgradeConfirmDialog } from "@/components/UpgradeConfirmDialog";
 
 interface PricingTier {
   id: string;
@@ -23,6 +24,10 @@ export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [loading, setLoading] = useState(true);
   const [currentTier, setCurrentTier] = useState<string>("free");
+  const [currentCredits, setCurrentCredits] = useState(0);
+  const [selectedTier, setSelectedTier] = useState<PricingTier | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,23 +59,38 @@ export default function Pricing() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("subscription_tier")
+        .select("subscription_tier, credits")
         .eq("id", user.id)
         .single();
 
       if (error) throw error;
       setCurrentTier(data?.subscription_tier || "free");
+      setCurrentCredits(data?.credits || 0);
     } catch (error: any) {
       console.error("Error fetching current tier:", error);
     }
   };
 
-  const handleUpgrade = async (tierName: string) => {
+  const handleUpgradeClick = (tierName: string) => {
     if (tierName === currentTier) {
       toast.info("You're already on this plan!");
       return;
     }
 
+    const tier = pricingTiers.find(t => t.tier_name === tierName);
+    if (!tier) {
+      toast.error("Plan not found");
+      return;
+    }
+
+    setSelectedTier(tier);
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmUpgrade = async () => {
+    if (!selectedTier) return;
+
+    setUpgrading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -79,31 +99,14 @@ export default function Pricing() {
         return;
       }
 
-      // Find the tier data
-      const tier = pricingTiers.find(t => t.tier_name === tierName);
-      if (!tier) {
-        toast.error("Plan not found");
-        return;
-      }
-
-      // Get current user credits first
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("credits")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      const currentCredits = profileData?.credits || 0;
-      const newCredits = currentCredits + tier.credits_included;
+      const newCredits = currentCredits + selectedTier.credits_included;
 
       // Update subscription tier in database - add new credits to existing
       const { error } = await supabase
         .from("profiles")
         .update({
-          subscription_tier: tierName,
-          monthly_post_limit: tier.post_limit,
+          subscription_tier: selectedTier.tier_name,
+          monthly_post_limit: selectedTier.post_limit,
           credits: newCredits,
           subscription_start_date: new Date().toISOString(),
           subscription_end_date: new Date(Date.now() + (billingPeriod === "monthly" ? 30 : 365) * 24 * 60 * 60 * 1000).toISOString()
@@ -112,9 +115,12 @@ export default function Pricing() {
 
       if (error) throw error;
 
-      setCurrentTier(tierName);
-      toast.success(`Successfully upgraded to ${tierName} plan!`, {
-        description: `${currentCredits} existing + ${tier.credits_included} new = ${newCredits} total credits`
+      setCurrentTier(selectedTier.tier_name);
+      setCurrentCredits(newCredits);
+      setShowConfirmDialog(false);
+      
+      toast.success(`Successfully upgraded to ${selectedTier.tier_name} plan!`, {
+        description: `You now have ${newCredits} total credits`
       });
 
       // Navigate back to dashboard after 2 seconds
@@ -124,6 +130,8 @@ export default function Pricing() {
     } catch (error: any) {
       console.error("Upgrade error:", error);
       toast.error("Failed to upgrade. Please try again or contact support.");
+    } finally {
+      setUpgrading(false);
     }
   };
 
@@ -253,7 +261,7 @@ export default function Pricing() {
                 </CardHeader>
                 <CardContent>
                   <Button
-                    onClick={() => handleUpgrade(tier.tier_name)}
+                    onClick={() => handleUpgradeClick(tier.tier_name)}
                     disabled={isCurrentTier}
                     className={`w-full mb-6 ${
                       isPremiumTier ? "bg-primary hover:bg-primary/90" : ""
@@ -296,6 +304,23 @@ export default function Pricing() {
           </Card>
         </div>
       </div>
+
+      {/* Upgrade Confirmation Dialog */}
+      {selectedTier && (
+        <UpgradeConfirmDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+          currentPlan={currentTier}
+          newPlan={selectedTier.tier_name}
+          currentCredits={currentCredits}
+          newPlanCredits={selectedTier.credits_included}
+          newPlanPostLimit={selectedTier.post_limit}
+          price={billingPeriod === "monthly" ? selectedTier.price_monthly : selectedTier.price_yearly}
+          billingPeriod={billingPeriod}
+          onConfirm={handleConfirmUpgrade}
+          isLoading={upgrading}
+        />
+      )}
     </div>
   );
 }
