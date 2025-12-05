@@ -86,13 +86,25 @@ export default function Pricing() {
         return;
       }
 
-      // Update subscription tier in database
+      // Get current user credits first
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const currentCredits = profileData?.credits || 0;
+      const newCredits = currentCredits + tier.credits_included;
+
+      // Update subscription tier in database - add new credits to existing
       const { error } = await supabase
         .from("profiles")
         .update({
           subscription_tier: tierName,
           monthly_post_limit: tier.post_limit,
-          credits: tier.credits_included,
+          credits: newCredits,
           subscription_start_date: new Date().toISOString(),
           subscription_end_date: new Date(Date.now() + (billingPeriod === "monthly" ? 30 : 365) * 24 * 60 * 60 * 1000).toISOString()
         })
@@ -102,7 +114,7 @@ export default function Pricing() {
 
       setCurrentTier(tierName);
       toast.success(`Successfully upgraded to ${tierName} plan!`, {
-        description: `You now have ${tier.credits_included} credits and can create ${tier.post_limit} posts/month`
+        description: `${currentCredits} existing + ${tier.credits_included} new = ${newCredits} total credits`
       });
 
       // Navigate back to dashboard after 2 seconds
