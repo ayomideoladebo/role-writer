@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { LogOut, Settings, RefreshCw, Upload, User, Zap, Sparkles } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { TrialBanner } from "@/components/TrialBanner";
+import { StartTrialCard } from "@/components/StartTrialCard";
+import { useTrial } from "@/hooks/useTrial";
 const Inspiration = lazy(() => import("./Inspiration"));
 const GeneratePost = lazy(() => import("./GeneratePost"));
 const ContentInsights = lazy(() => import("./ContentInsights"));
@@ -51,6 +54,7 @@ const Dashboard = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>();
   const [profileForm, setProfileForm] = useState({
     role: "",
     industry: "",
@@ -63,6 +67,15 @@ const Dashboard = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const { 
+    isOnTrial, 
+    trialDaysRemaining, 
+    isExpiringSoon, 
+    canStartTrial, 
+    startTrial,
+    refetch: refetchTrial 
+  } = useTrial(userId);
 
   useEffect(() => {
     checkAuth();
@@ -74,6 +87,8 @@ const Dashboard = () => {
       navigate("/auth");
       return;
     }
+    
+    setUserId(user.id);
 
     // Fetch profile
     const { data: profileData, error: profileError } = await supabase
@@ -292,6 +307,28 @@ const Dashboard = () => {
           {/* Main Content */}
           <main className="flex-1 container mx-auto px-6 py-8">
             <div className="max-w-7xl mx-auto">
+              {/* Trial Banner - show when on trial */}
+              {isOnTrial && (
+                <TrialBanner 
+                  daysRemaining={trialDaysRemaining} 
+                  isExpiringSoon={isExpiringSoon} 
+                />
+              )}
+              
+              {/* Start Trial Card - show for free users who haven't used trial */}
+              {profile?.subscription_tier === "free" && canStartTrial && !isOnTrial && location.pathname.includes("/insights") && (
+                <div className="mb-6">
+                  <StartTrialCard onStartTrial={async () => {
+                    const success = await startTrial();
+                    if (success) {
+                      refetchTrial();
+                      checkAuth(); // Refresh profile to show premium features
+                    }
+                    return success;
+                  }} />
+                </div>
+              )}
+              
               <Suspense fallback={<div className="flex items-center justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-primary" /></div>}>
                 {renderContent()}
               </Suspense>

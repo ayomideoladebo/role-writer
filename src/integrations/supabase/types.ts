@@ -134,6 +134,9 @@ export type Database = {
           subscription_tier: string | null
           target_audience: string | null
           tone_preference: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
+          trial_used: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -156,6 +159,9 @@ export type Database = {
           subscription_tier?: string | null
           target_audience?: string | null
           tone_preference?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          trial_used?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -178,6 +184,9 @@ export type Database = {
           subscription_tier?: string | null
           target_audience?: string | null
           tone_preference?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          trial_used?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

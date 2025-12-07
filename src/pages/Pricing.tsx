@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles, Zap, Crown, ArrowLeft, Star } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, ArrowLeft, Star, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { UpgradeConfirmDialog } from "@/components/UpgradeConfirmDialog";
+import { useTrial } from "@/hooks/useTrial";
 
 interface PricingTier {
   id: string;
@@ -26,7 +27,10 @@ export default function Pricing() {
   const [selectedTier, setSelectedTier] = useState<PricingTier | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>();
   const navigate = useNavigate();
+  
+  const { isOnTrial, canStartTrial, trialDaysRemaining, startTrial } = useTrial(userId);
 
   useEffect(() => {
     fetchPricingTiers();
@@ -54,6 +58,8 @@ export default function Pricing() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      
+      setUserId(user.id);
 
       const { data, error } = await supabase
         .from("profiles")
@@ -66,6 +72,18 @@ export default function Pricing() {
       setCurrentCredits(data?.credits || 0);
     } catch (error: any) {
       console.error("Error fetching current tier:", error);
+    }
+  };
+
+  const handleStartTrial = async () => {
+    const success = await startTrial();
+    if (success) {
+      setCurrentTier("premium");
+      toast.success("Welcome to your 7-day Premium trial!", {
+        description: "Enjoy full access to all premium features"
+      });
+    } else {
+      toast.error("Failed to start trial. Please try again.");
     }
   };
 
@@ -194,6 +212,16 @@ export default function Pricing() {
           <p className="text-lg text-muted-foreground">
             Start free, upgrade when you're ready. No hidden fees.
           </p>
+          
+          {/* Trial Status Banner */}
+          {isOnTrial && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border border-primary/50 rounded-full">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-medium">
+                Premium trial active - {trialDaysRemaining} days remaining
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Billing Toggle */}
@@ -294,6 +322,16 @@ export default function Pricing() {
                 </div>
 
                 {/* CTA Button */}
+                {/* Show "Start Free Trial" for premium tier if user can start trial */}
+                {isPremiumTier && canStartTrial && currentTier === "free" ? (
+                  <Button
+                    onClick={handleStartTrial}
+                    className="w-full mb-6 bg-gradient-to-r from-primary to-purple-500 hover:opacity-90 text-primary-foreground"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Start 7-Day Free Trial
+                  </Button>
+                ) : (
                 <Button
                   onClick={() => handleUpgradeClick(tier.tier_name)}
                   disabled={isCurrentTier}
@@ -306,8 +344,13 @@ export default function Pricing() {
                   }`}
                   variant={isPremiumTier || isEnterprise ? "default" : "outline"}
                 >
-                  {isCurrentTier ? "Current Plan" : tier.tier_name === "free" ? "Get Started" : "Upgrade"}
+                  {isCurrentTier 
+                    ? (isOnTrial ? "Trial Active" : "Current Plan") 
+                    : tier.tier_name === "free" 
+                    ? "Get Started" 
+                    : "Upgrade"}
                 </Button>
+                )}
 
                 {/* Features */}
                 <div className="space-y-3">

@@ -131,12 +131,12 @@ export function AppSidebar() {
           </nav>
         </div>
 
-        {/* PREMIUM Features Section */}
-        {profile?.subscription_tier !== "free" && (
+        {/* PREMIUM Features Section - Show for premium/enterprise OR if profile has trial_end_date */}
+        {(profile?.subscription_tier !== "free" || profile?.trial_end_date) && (
           <div className="mb-6">
             {!collapsed && (
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
-                PREMIUM
+                {profile?.trial_end_date && profile?.subscription_tier === "premium" ? "PREMIUM TRIAL" : "PREMIUM"}
               </p>
             )}
             <nav className="space-y-1">
@@ -225,7 +225,7 @@ export function AppSidebar() {
             {!collapsed && <span className="text-sm font-medium">Pricing</span>}
           </NavLink>
 
-          {profile?.subscription_tier === "free" && (
+          {profile?.subscription_tier === "free" && !profile?.trial_end_date && (
             <Button 
               onClick={() => navigate("/pricing")}
               className="w-full mt-2 bg-primary hover:opacity-90"
@@ -233,7 +233,7 @@ export function AppSidebar() {
               {!collapsed ? (
                 <>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Upgrade to Pro
+                  Start Free Trial
                 </>
               ) : (
                 <Sparkles className="w-4 h-4" />
