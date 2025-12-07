@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, ArrowLeft, Star } from "lucide-react";
 import { toast } from "sonner";
 import { UpgradeConfirmDialog } from "@/components/UpgradeConfirmDialog";
 
@@ -101,7 +99,6 @@ export default function Pricing() {
 
       const newCredits = currentCredits + selectedTier.credits_included;
 
-      // Update subscription tier in database - add new credits to existing
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -123,7 +120,6 @@ export default function Pricing() {
         description: `You now have ${newCredits} total credits`
       });
 
-      // Navigate back to dashboard after 2 seconds
       setTimeout(() => {
         navigate("/dashboard/insights");
       }, 2000);
@@ -138,170 +134,207 @@ export default function Pricing() {
   const getTierIcon = (tierName: string) => {
     switch (tierName) {
       case "free":
-        return <Zap className="w-6 h-6" />;
+        return <Zap className="w-5 h-5" />;
       case "premium":
-        return <Sparkles className="w-6 h-6" />;
+        return <Sparkles className="w-5 h-5" />;
       case "enterprise":
-        return <Crown className="w-6 h-6" />;
+        return <Crown className="w-5 h-5" />;
       default:
-        return <Zap className="w-6 h-6" />;
+        return <Zap className="w-5 h-5" />;
     }
   };
 
-  const getTierColor = (tierName: string) => {
+  const getHighlightFeatures = (tierName: string) => {
     switch (tierName) {
       case "free":
-        return "bg-muted";
+        return ["20 posts/month", "100 credits", "Basic AI (Gemini Flash)", "LinkedIn & Twitter", "Basic templates"];
       case "premium":
-        return "bg-gradient-to-br from-primary/20 to-primary/10";
+        return ["100 posts/month", "500 credits", "Advanced AI models", "Content calendar", "Custom brand voice", "Batch generation (5x)", "Post scheduling"];
       case "enterprise":
-        return "bg-gradient-to-br from-amber-500/20 to-amber-500/10";
+        return ["1000 posts/month", "2000 credits", "GPT-5 Full Access", "Team collaboration", "API access", "White-label options", "Priority 24/7 support", "Advanced analytics"];
       default:
-        return "bg-muted";
+        return [];
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard")}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Unlock powerful features to supercharge your content creation
-          </p>
-
-          <Tabs
-            value={billingPeriod}
-            onValueChange={(v) => setBillingPeriod(v as "monthly" | "yearly")}
-            className="inline-flex"
+      {/* Header */}
+      <div className="border-b border-border/50">
+        <div className="container mx-auto px-4 py-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/dashboard")}
+            className="text-muted-foreground hover:text-foreground"
           >
-            <TabsList>
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="yearly">
-                Yearly
-                <Badge variant="secondary" className="ml-2">
-                  Save 17%
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        {/* Hero Section */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <Badge variant="secondary" className="mb-4 px-3 py-1">
+            <Star className="w-3 h-3 mr-1 fill-primary text-primary" />
+            Simple, transparent pricing
+          </Badge>
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+            Supercharge your content
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Start free, upgrade when you're ready. No hidden fees.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          <button
+            onClick={() => setBillingPeriod("monthly")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              billingPeriod === "monthly"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingPeriod("yearly")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+              billingPeriod === "yearly"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Yearly
+            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+              -17%
+            </span>
+          </button>
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {pricingTiers.map((tier) => {
             const price = billingPeriod === "monthly" ? tier.price_monthly : tier.price_yearly;
             const monthlyPrice = billingPeriod === "yearly" ? Math.round(tier.price_yearly / 12) : tier.price_monthly;
             const isCurrentTier = currentTier === tier.tier_name;
             const isPremiumTier = tier.tier_name === "premium";
+            const isEnterprise = tier.tier_name === "enterprise";
+            const features = getHighlightFeatures(tier.tier_name);
 
             return (
-              <Card
+              <div
                 key={tier.id}
-                className={`relative ${getTierColor(tier.tier_name)} ${
-                  isPremiumTier ? "border-primary border-2 shadow-2xl scale-105" : ""
-                } ${
-                  tier.tier_name === "enterprise" ? "border-amber-500 border-2 shadow-2xl" : ""
+                className={`relative rounded-2xl p-6 transition-all duration-300 ${
+                  isPremiumTier
+                    ? "bg-gradient-to-b from-primary/20 via-primary/10 to-transparent border-2 border-primary shadow-lg shadow-primary/10 scale-[1.02]"
+                    : isEnterprise
+                    ? "bg-gradient-to-b from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/50"
+                    : "bg-card/50 border border-border/50"
                 }`}
               >
+                {/* Badge */}
                 {isPremiumTier && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
                     Most Popular
                   </Badge>
                 )}
-                {tier.tier_name === "enterprise" && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500">
+                {isEnterprise && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white">
                     Best Value
                   </Badge>
                 )}
-                {isCurrentTier && (
-                  <Badge className="absolute -top-3 right-4 bg-green-500">
-                    Current Plan
-                  </Badge>
-                )}
-                <CardHeader>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`p-3 rounded-lg ${tier.tier_name === "enterprise" ? "bg-amber-500/20" : "bg-primary/20"}`}>
-                      {getTierIcon(tier.tier_name)}
-                    </div>
-                    <CardTitle className="text-2xl capitalize">
-                      {tier.tier_name}
-                    </CardTitle>
+
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className={`p-2 rounded-lg ${
+                    isPremiumTier ? "bg-primary/20 text-primary" : 
+                    isEnterprise ? "bg-amber-500/20 text-amber-400" : 
+                    "bg-muted text-muted-foreground"
+                  }`}>
+                    {getTierIcon(tier.tier_name)}
                   </div>
-                  <div className="mb-2">
-                    <span className="text-4xl font-bold">${monthlyPrice}</span>
-                    <span className="text-muted-foreground">/month</span>
+                  <h3 className="text-lg font-semibold capitalize text-foreground">
+                    {tier.tier_name}
+                  </h3>
+                  {isCurrentTier && (
+                    <Badge variant="outline" className="ml-auto text-xs border-green-500/50 text-green-400">
+                      Current
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Price */}
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-foreground">${monthlyPrice}</span>
+                    <span className="text-muted-foreground">/mo</span>
                   </div>
                   {billingPeriod === "yearly" && tier.price_yearly > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Billed ${tier.price_yearly}/year
+                    <p className="text-sm text-muted-foreground mt-1">
+                      ${tier.price_yearly} billed yearly
                     </p>
                   )}
-                  <CardDescription className="mt-2">
-                    {tier.credits_included} credits • {tier.post_limit} posts/month
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => handleUpgradeClick(tier.tier_name)}
-                    disabled={isCurrentTier}
-                    className={`w-full mb-6 ${
-                      isPremiumTier ? "bg-primary hover:bg-primary/90" : ""
-                    }`}
-                    variant={isPremiumTier ? "default" : "outline"}
-                  >
-                    {isCurrentTier ? "Current Plan" : tier.tier_name === "free" ? "Get Started" : "Upgrade Now"}
-                  </Button>
+                  {tier.price_monthly === 0 && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Free forever
+                    </p>
+                  )}
+                </div>
 
-                  <div className="space-y-3">
-                    {Object.entries(tier.features).map(([key, value]) => (
-                      <div key={key} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <span className="text-sm font-semibold text-foreground">{key}:</span>
-                          <span className="text-sm text-muted-foreground ml-1">{String(value)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                {/* CTA Button */}
+                <Button
+                  onClick={() => handleUpgradeClick(tier.tier_name)}
+                  disabled={isCurrentTier}
+                  className={`w-full mb-6 ${
+                    isPremiumTier
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                      : isEnterprise
+                      ? "bg-amber-500 hover:bg-amber-500/90 text-white"
+                      : ""
+                  }`}
+                  variant={isPremiumTier || isEnterprise ? "default" : "outline"}
+                >
+                  {isCurrentTier ? "Current Plan" : tier.tier_name === "free" ? "Get Started" : "Upgrade"}
+                </Button>
+
+                {/* Features */}
+                <div className="space-y-3">
+                  {features.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Check className={`w-4 h-4 flex-shrink-0 ${
+                        isPremiumTier ? "text-primary" : 
+                        isEnterprise ? "text-amber-400" : 
+                        "text-muted-foreground"
+                      }`} />
+                      <span className="text-sm text-foreground/80">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>
 
+        {/* FAQ / Trust Section */}
         <div className="mt-16 text-center">
-          <Card className="max-w-3xl mx-auto bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <h3 className="text-xl font-bold mb-2">
-                Need a custom plan?
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Contact our sales team for custom pricing, bulk discounts, and enterprise features
-              </p>
-              <Button variant="outline" className="border-primary">
-                Contact Sales
-              </Button>
-            </CardContent>
-          </Card>
+          <p className="text-muted-foreground text-sm">
+            Have questions?{" "}
+            <button className="text-primary hover:underline">
+              Contact our team
+            </button>
+          </p>
         </div>
       </div>
 
