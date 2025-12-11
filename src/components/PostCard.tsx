@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus, CalendarClock } from "lucide-react";
+import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus, CalendarClock, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { renderFormattedText } from "@/lib/markdown";
 import { format } from "date-fns";
@@ -41,6 +41,24 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
       onCopy(post.content);
     } finally {
       setTimeout(() => setCopying(false), 1000);
+    }
+  };
+
+  const handleDownloadImage = async () => {
+    if (!post.image_url) return;
+    
+    try {
+      const response = await fetch(post.image_url);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `post-image-${post.id}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Image downloaded!");
+    } catch (error) {
+      toast.error("Failed to download image");
     }
   };
 
@@ -107,12 +125,21 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
         ) : (
           <>
             {post.image_url && (
-              <div className="mb-3 sm:mb-4">
+              <div className="mb-3 sm:mb-4 relative group">
                 <img 
                   src={post.image_url} 
                   alt="Post image" 
                   className="w-full rounded-lg border object-cover max-h-[300px]"
                 />
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 gap-1.5"
+                  onClick={handleDownloadImage}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download
+                </Button>
               </div>
             )}
             <div className="p-3 sm:p-4 bg-background/50 rounded-lg border min-h-[120px] sm:min-h-[150px]">
@@ -168,7 +195,11 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
                 disabled={generatingImage || !!post.image_url}
                 className="hover:border-primary text-xs h-8"
               >
-                <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                {generatingImage ? (
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 animate-spin" />
+                ) : (
+                  <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                )}
                 <span className="hidden sm:inline">
                   {generatingImage ? "Generating..." : post.image_url ? "Has Image" : "Add Image"}
                 </span>
