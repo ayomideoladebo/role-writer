@@ -190,8 +190,8 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
   const handleGenerateWithPrompt = async (prompt: string) => {
     if (selectedPostForImage) {
-      await handleGenerateImage(selectedPostForImage, prompt);
       setImagePromptOpen(false);
+      await handleGenerateImage(selectedPostForImage, prompt);
       setSelectedPostForImage(null);
     }
   };
