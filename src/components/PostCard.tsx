@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus, CalendarClock, Download, Loader2 } from "lucide-react";
+import { Copy, Heart, Trash2, Linkedin, Twitter, Edit2, Save, X, ImagePlus, CalendarClock, Download, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { renderFormattedText } from "@/lib/markdown";
 import { format } from "date-fns";
@@ -192,16 +192,18 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
                 variant="outline"
                 size="sm"
                 onClick={() => onOpenImagePrompt(post.id)}
-                disabled={generatingImage || !!post.image_url}
+                disabled={generatingImage}
                 className="hover:border-primary text-xs h-8"
               >
                 {generatingImage ? (
                   <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 animate-spin" />
+                ) : post.image_url ? (
+                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 ) : (
                   <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 )}
                 <span className="hidden sm:inline">
-                  {generatingImage ? "Generating..." : post.image_url ? "Has Image" : "Add Image"}
+                  {generatingImage ? "Generating..." : post.image_url ? "Regenerate" : "Add Image"}
                 </span>
               </Button>
               <Button
