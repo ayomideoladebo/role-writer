@@ -38,12 +38,33 @@ serve(async (req) => {
       const interestsContext = userInterests ? ` Context about user's interests: ${userInterests}.` : '';
       imagePrompt = `${customPrompt}${interestsContext} Create a high-quality, professional image for a LinkedIn/Twitter post. Ultra high resolution.`;
       
-      requestBody.messages = [
-        {
-          role: 'user',
-          content: imagePrompt
-        }
-      ];
+      // If user has an avatar, use image editing to incorporate their likeness
+      if (avatarUrl) {
+        requestBody.messages = [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `${imagePrompt} Use the person from this photo in the image, keeping their face and likeness intact.`
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: avatarUrl
+                }
+              }
+            ]
+          }
+        ];
+      } else {
+        requestBody.messages = [
+          {
+            role: 'user',
+            content: imagePrompt
+          }
+        ];
+      }
     } else if (postType === 'story' && avatarUrl) {
       // For story posts with avatar, edit the user's image into a workspace scene
       const cameraAngles = ['over-the-shoulder shot', 'side profile', 'realistic phone camera shoot style', 'slightly elevated angle', 'eye-level perspective'];
