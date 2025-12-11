@@ -9,13 +9,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Wand2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ImagePromptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGenerate: (prompt: string) => void;
   generating: boolean;
+  postContent?: string;
+  platform?: string;
 }
 
 export default function ImagePromptDialog({
@@ -23,13 +27,42 @@ export default function ImagePromptDialog({
   onOpenChange,
   onGenerate,
   generating,
+  postContent,
+  platform,
 }: ImagePromptDialogProps) {
   const [prompt, setPrompt] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
 
   const handleGenerate = () => {
     if (prompt.trim()) {
       onGenerate(prompt.trim());
       setPrompt("");
+    }
+  };
+
+  const handleSuggest = async () => {
+    if (!postContent) {
+      toast.error("No post content available to generate suggestion");
+      return;
+    }
+
+    setSuggesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('suggest-image-prompt', {
+        body: { postContent, platform }
+      });
+
+      if (error) throw error;
+      
+      if (data?.suggestion) {
+        setPrompt(data.suggestion);
+        toast.success("Image description suggested!");
+      }
+    } catch (error) {
+      console.error('Error suggesting image prompt:', error);
+      toast.error("Failed to suggest image description");
+    } finally {
+      setSuggesting(false);
     }
   };
 
@@ -47,7 +80,30 @@ export default function ImagePromptDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="image-prompt">Image Description</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="image-prompt">Image Description</Label>
+              {postContent && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSuggest}
+                  disabled={suggesting || generating}
+                  className="h-7 text-xs gap-1.5"
+                >
+                  {suggesting ? (
+                    <>
+                      <Wand2 className="w-3.5 h-3.5 animate-pulse" />
+                      Suggesting...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-3.5 h-3.5" />
+                      Suggest
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
             <Textarea
               id="image-prompt"
               placeholder="e.g., A professional workspace with a laptop, modern and minimalist style, warm lighting..."

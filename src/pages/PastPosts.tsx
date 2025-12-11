@@ -369,6 +369,8 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
         onOpenChange={setImagePromptOpen}
         onGenerate={handleGenerateWithPrompt}
         generating={generatingImageForPost !== null}
+        postContent={selectedPostForImage ? posts.find(p => p.id === selectedPostForImage)?.content : undefined}
+        platform={selectedPostForImage ? posts.find(p => p.id === selectedPostForImage)?.platform : undefined}
       />
 
       {selectedPostForSchedule && (
