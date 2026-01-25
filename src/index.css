@@ -2,109 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Bold & Vibrant Design System - Modern Minimal Dark Theme */
 
 @layer base {
   :root {
-    --background: 232 43% 7%;
-    --foreground: 250 20% 10%;
+    --background: 240 15% 5%;
+    --foreground: 0 0% 98%;
 
-    --app-bg: #0a0c1a;
+    --app-bg: 240 15% 3%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 250 20% 10%;
+    --card: 240 15% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 250 20% 10%;
+    --popover: 240 15% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 100% 50%;
+    /* Vibrant Electric Blue Primary */
+    --primary: 217 100% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 250 60% 95%;
-    --secondary-foreground: 250 20% 10%;
+    /* Accent - Vivid Cyan */
+    --accent: 185 100% 50%;
+    --accent-foreground: 240 15% 5%;
 
-    --muted: 250 40% 96%;
-    --muted-foreground: 250 10% 45%;
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 0 0% 90%;
 
-    --accent: 210 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 55%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 250 30% 90%;
-    --input: 250 30% 90%;
-    --ring: 210 100% 50%;
+    --border: 240 10% 15%;
+    --input: 240 10% 12%;
+    --ring: 217 100% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(0, 0%, 0%) 0%, hsl(200, 100%, 45%) 100%);
-    --gradient-card: linear-gradient(to bottom right, hsl(0, 0%, 100%), hsl(250, 60%, 98%));
-    --shadow-card: 0 2px 8px -2px hsl(250 30% 15% / 0.08);
-    --shadow-hover: 0 8px 24px -4px hsl(210 100% 50% / 0.15);
+    /* Bold Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217, 100%, 55%) 0%, hsl(185, 100%, 50%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(280, 100%, 60%) 0%, hsl(217, 100%, 60%) 100%);
+    --gradient-vibrant: linear-gradient(135deg, hsl(340, 100%, 60%) 0%, hsl(280, 100%, 55%) 50%, hsl(217, 100%, 60%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(240, 15%, 10%) 0%, hsl(240, 15%, 7%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(217, 100%, 60%, 0.15) 0%, transparent 70%);
+    
+    /* Modern Shadows */
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);
+    --shadow-hover: 0 8px 40px -8px hsl(217 100% 60% / 0.3);
+    --shadow-glow: 0 0 40px -10px hsl(217 100% 60% / 0.5);
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar */
+    --sidebar-background: 240 15% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 217 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 10% 12%;
+    --sidebar-ring: 217 100% 60%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    --font-sans: 'Outfit', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --font-sans: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
   }
 
   .dark {
-    --background: 232 43% 7%;
-    --foreground: 250 10% 95%;
+    --background: 240 15% 5%;
+    --foreground: 0 0% 98%;
 
-    --card: 250 25% 12%;
-    --card-foreground: 250 10% 95%;
+    --card: 240 15% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 250 25% 12%;
-    --popover-foreground: 250 10% 95%;
+    --popover: 240 15% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 100% 50%;
+    --primary: 217 100% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 250 20% 18%;
-    --secondary-foreground: 250 10% 95%;
+    --accent: 185 100% 50%;
+    --accent-foreground: 240 15% 5%;
 
-    --muted: 250 20% 18%;
-    --muted-foreground: 250 10% 65%;
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 0 0% 90%;
 
-    --accent: 210 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 55%;
 
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 250 15% 18%;
-    --input: 250 15% 18%;
-    --ring: 210 100% 50%;
+    --border: 240 10% 15%;
+    --input: 240 10% 12%;
+    --ring: 217 100% 60%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(0, 0%, 0%) 0%, hsl(0, 0%, 0%) 100%);
-    --gradient-card: linear-gradient(to bottom right, hsl(250, 25%, 12%), hsl(250, 20%, 15%));
-    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
-    --shadow-hover: 0 8px 24px -4px hsl(210 100% 50% / 0.25);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --gradient-primary: linear-gradient(135deg, hsl(217, 100%, 55%) 0%, hsl(185, 100%, 50%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(280, 100%, 60%) 0%, hsl(217, 100%, 60%) 100%);
+    --gradient-vibrant: linear-gradient(135deg, hsl(340, 100%, 60%) 0%, hsl(280, 100%, 55%) 50%, hsl(217, 100%, 60%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(240, 15%, 10%) 0%, hsl(240, 15%, 7%) 100%);
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.5);
+    --shadow-hover: 0 8px 40px -8px hsl(217 100% 60% / 0.35);
+    --shadow-glow: 0 0 40px -10px hsl(217 100% 60% / 0.5);
+    
+    --sidebar-background: 240 15% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 217 100% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 10% 12%;
+    --sidebar-ring: 217 100% 60%;
   }
 }
 
@@ -113,9 +118,14 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
@@ -127,4 +137,91 @@ All colors MUST be HSL.
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Vibrant gradient text */
+  .gradient-text-vibrant {
+    background: var(--gradient-vibrant);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glow effect */
+  .glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Hover lift animation */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-hover;
+  }
+
+  /* Subtle border glow on hover */
+  .border-glow {
+    @apply transition-all duration-300;
+  }
+  .border-glow:hover {
+    @apply border-primary/50;
+    box-shadow: 0 0 20px -5px hsl(217 100% 60% / 0.3);
+  }
+
+  /* Animated gradient background */
+  .animated-gradient {
+    background: linear-gradient(-45deg, 
+      hsl(217, 100%, 60%), 
+      hsl(185, 100%, 50%), 
+      hsl(280, 100%, 60%), 
+      hsl(340, 100%, 60%)
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Pulse glow animation */
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px -5px hsl(217 100% 60% / 0.3); }
+    50% { box-shadow: 0 0 30px -5px hsl(217 100% 60% / 0.5); }
+  }
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(240 15% 8%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(240 10% 20%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(240 10% 30%);
 }
