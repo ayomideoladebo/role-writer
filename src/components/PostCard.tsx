@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -78,46 +78,53 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
   };
 
   return (
-    <Card className="shadow-card hover:shadow-hover transition-all duration-300 border-2 bg-gradient-card">
-      <CardHeader className="pb-3 sm:pb-6">
-        <CardTitle className="flex items-center justify-between text-base sm:text-lg">
-          <div className="flex items-center gap-2">
+    <Card className="group bg-card border border-border/50 hover:border-primary/30 shadow-card hover-lift overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg ${post.platform === "linkedin" ? "bg-[#0077B5]/10" : "bg-[#1DA1F2]/10"}`}>
             {post.platform === "linkedin" ? (
-              <Linkedin className="w-4 h-4 sm:w-5 sm:h-5 text-[#0077B5]" />
+              <Linkedin className="w-4 h-4 text-[#0077B5]" />
             ) : (
-              <Twitter className="w-4 h-4 sm:w-5 sm:h-5 text-[#1DA1F2]" />
+              <Twitter className="w-4 h-4 text-[#1DA1F2]" />
             )}
-            <span className="capitalize">{post.platform} Post</span>
           </div>
-          {post.scheduled_for && post.status === 'scheduled' && (
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <CalendarClock className="w-3 h-3" />
-              {format(new Date(post.scheduled_for), 'MMM d, h:mm a')}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 sm:space-y-4">
+          <div>
+            <span className="font-medium capitalize">{post.platform}</span>
+            <p className="text-xs text-muted-foreground">
+              {format(new Date(post.created_at), 'MMM d, yyyy')}
+            </p>
+          </div>
+        </div>
+        {post.scheduled_for && post.status === 'scheduled' && (
+          <Badge variant="secondary" className="gap-1.5 text-xs bg-accent/10 text-accent border-accent/20">
+            <CalendarClock className="w-3 h-3" />
+            {format(new Date(post.scheduled_for), 'MMM d, h:mm a')}
+          </Badge>
+        )}
+      </div>
+
+      <CardContent className="p-5 space-y-4">
         {isEditing ? (
           <>
             <Textarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
               rows={8}
-              className="text-xs sm:text-sm"
+              className="text-sm bg-muted/30 border-border/50 focus:border-primary/50"
             />
-            <div className="flex justify-between items-center text-[10px] sm:text-xs">
+            <div className="flex justify-between items-center text-xs">
               <span className={editedContent.length > maxChars ? 'text-destructive' : 'text-muted-foreground'}>
-                {editedContent.length} / {maxChars} characters
+                {editedContent.length} / {maxChars}
               </span>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleSaveEdit} className="text-xs h-8">
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <Button size="sm" onClick={handleSaveEdit} className="bg-gradient-primary hover:opacity-90">
+                <Save className="w-4 h-4 mr-1.5" />
                 Save
               </Button>
-              <Button size="sm" variant="outline" onClick={handleCancelEdit} className="text-xs h-8">
-                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <Button size="sm" variant="outline" onClick={handleCancelEdit} className="border-border/50">
+                <X className="w-4 h-4 mr-1.5" />
                 Cancel
               </Button>
             </div>
@@ -125,16 +132,16 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
         ) : (
           <>
             {post.image_url && (
-              <div className="mb-3 sm:mb-4 relative group">
+              <div className="relative group/image rounded-xl overflow-hidden border border-border/30">
                 <img 
                   src={post.image_url} 
                   alt="Post image" 
-                  className="w-full rounded-lg border object-cover max-h-[300px]"
+                  className="w-full object-cover max-h-[280px]"
                 />
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 gap-1.5"
+                  className="absolute bottom-3 right-3 opacity-0 group-hover/image:opacity-100 transition-opacity h-8 gap-1.5 bg-background/80 backdrop-blur-sm"
                   onClick={handleDownloadImage}
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -142,50 +149,59 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
                 </Button>
               </div>
             )}
-            <div className="p-3 sm:p-4 bg-background/50 rounded-lg border min-h-[120px] sm:min-h-[150px]">
+            
+            <div className="p-4 bg-muted/20 rounded-xl border border-border/30 min-h-[120px]">
               <div 
-                className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed"
+                className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90"
                 dangerouslySetInnerHTML={renderFormattedText(post.content)}
               />
             </div>
-            <div className="flex justify-between items-center text-[10px] sm:text-xs">
-              <span className={charCount > maxChars ? 'text-destructive' : 'text-muted-foreground'}>
+            
+            <div className="flex justify-between items-center text-xs">
+              <span className={charCount > maxChars ? 'text-destructive font-medium' : 'text-muted-foreground'}>
                 {charCount} / {maxChars} characters
               </span>
+              {post.is_saved && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                  Saved
+                </Badge>
+              )}
             </div>
-            <div className="grid grid-cols-2 sm:flex gap-2 flex-wrap">
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCopy}
                 disabled={copying}
-                className="hover:border-primary text-xs h-8"
+                className="h-9 text-xs border-border/50 hover:border-primary/50 hover:bg-primary/5"
               >
-                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">{copying ? "Copied!" : "Copy"}</span>
+                <Copy className="w-4 h-4 mr-1.5" />
+                {copying ? "Copied!" : "Copy"}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onSave(post.id)}
-                className={`hover:border-primary text-xs h-8 ${
-                  post.is_saved ? "bg-primary/10 border-primary" : ""
+                className={`h-9 text-xs border-border/50 ${
+                  post.is_saved ? "bg-primary/10 border-primary/30 text-primary" : "hover:border-primary/50 hover:bg-primary/5"
                 }`}
               >
                 <Heart
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 ${post.is_saved ? "fill-primary text-primary" : ""}`}
+                  className={`w-4 h-4 mr-1.5 ${post.is_saved ? "fill-primary" : ""}`}
                 />
-                <span className="hidden sm:inline">{post.is_saved ? "Saved" : "Save"}</span>
+                {post.is_saved ? "Saved" : "Save"}
               </Button>
               {isPremium && onSchedule && !post.scheduled_for && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onSchedule(post.id)}
-                  className="hover:border-primary text-xs h-8"
+                  className="h-9 text-xs border-border/50 hover:border-accent/50 hover:bg-accent/5"
                 >
-                  <CalendarClock className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Schedule</span>
+                  <CalendarClock className="w-4 h-4 mr-1.5" />
+                  Schedule
                 </Button>
               )}
               <Button
@@ -193,36 +209,34 @@ const PostCard = ({ post, onSave, onDelete, onEdit, onCopy, onGenerateImage, onO
                 size="sm"
                 onClick={() => onOpenImagePrompt(post.id)}
                 disabled={generatingImage}
-                className="hover:border-primary text-xs h-8"
+                className="h-9 text-xs border-border/50 hover:border-primary/50 hover:bg-primary/5"
               >
                 {generatingImage ? (
-                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                 ) : post.image_url ? (
-                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-1.5" />
                 ) : (
-                  <ImagePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                  <ImagePlus className="w-4 h-4 mr-1.5" />
                 )}
-                <span className="hidden sm:inline">
-                  {generatingImage ? "Generating..." : post.image_url ? "Regenerate" : "Add Image"}
-                </span>
+                {generatingImage ? "Generating..." : post.image_url ? "Regenerate" : "Add Image"}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsEditing(true)}
-                className="hover:border-primary text-xs h-8"
+                className="h-9 text-xs border-border/50 hover:border-primary/50 hover:bg-primary/5"
               >
-                <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Edit</span>
+                <Edit2 className="w-4 h-4 mr-1.5" />
+                Edit
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onDelete(post.id)}
-                className="hover:border-destructive text-destructive text-xs h-8"
+                className="h-9 text-xs border-border/50 hover:border-destructive/50 hover:bg-destructive/5 text-destructive"
               >
-                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Delete</span>
+                <Trash2 className="w-4 h-4 mr-1.5" />
+                Delete
               </Button>
             </div>
           </>

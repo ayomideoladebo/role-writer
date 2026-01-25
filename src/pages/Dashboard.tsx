@@ -256,47 +256,62 @@ const Dashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#0a0c1a]">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-screen">
           {/* Header */}
-          <header className="border-b border-border/10 bg-card/5 sticky top-0 z-10">
-            <div className="container mx-auto px-4 py-3">
-              <div className="flex items-center justify-between gap-2">
+          <header className="sticky top-0 z-10 glass border-b border-border/30">
+            <div className="container mx-auto px-4 sm:px-6 py-3">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <SidebarTrigger className="lg:hidden" />
-                  <div className="p-2 bg-primary rounded-xl">
-                    <Sparkles className="w-5 h-5 text-primary-foreground" />
-                  </div>
-                  <div className="hidden sm:block">
-                    <h1 className="text-xl font-bold bg-primary bg-clip-text text-transparent">
-                      LinkTweet
-                    </h1>
-                    {profile && (
-                      <p className="text-xs text-muted-foreground">
-                        {profile.role} · {profile.industry}
-                      </p>
-                    )}
+                  <div className="hidden sm:flex items-center gap-3">
+                    <div className="p-2 bg-gradient-primary rounded-xl shadow-glow">
+                      <Sparkles className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h1 className="text-lg font-bold gradient-text">
+                        LinkTweet
+                      </h1>
+                      {profile && (
+                        <p className="text-xs text-muted-foreground">
+                          {profile.role} · {profile.industry}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
+                  {/* Credits Badge */}
+                  <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-xl border border-primary/20">
                     <Zap className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-semibold text-primary">{profile?.credits || 0}</span>
+                    <span className="text-sm font-bold text-primary">{profile?.credits || 0}</span>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">credits</span>
                   </div>
-                  <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="icon" className="hidden sm:flex" onClick={() => navigate("/dashboard/settings")}>
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
-                  <Button variant="outline" onClick={handleLogout} size="sm" className="hidden sm:flex">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="hidden sm:flex border-border/50 hover:border-primary/50"
+                    onClick={() => navigate("/dashboard/settings")}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleLogout} 
+                    size="sm" 
+                    className="hidden sm:flex border-border/50 hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive"
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     <span className="hidden md:inline">Logout</span>
                   </Button>
-                  <Button variant="outline" onClick={handleLogout} size="icon" className="sm:hidden">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleLogout} 
+                    size="icon" 
+                    className="sm:hidden border-border/50"
+                  >
                     <LogOut className="w-4 h-4" />
                   </Button>
                 </div>
@@ -305,9 +320,9 @@ const Dashboard = () => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 container mx-auto px-6 py-8">
+          <main className="flex-1 container mx-auto px-4 sm:px-6 py-8">
             <div className="max-w-7xl mx-auto">
-              {/* Trial Banner - show when on trial */}
+              {/* Trial Banner */}
               {isOnTrial && (
                 <TrialBanner 
                   daysRemaining={trialDaysRemaining} 
@@ -315,21 +330,28 @@ const Dashboard = () => {
                 />
               )}
               
-              {/* Start Trial Card - show for free users who haven't used trial */}
+              {/* Start Trial Card */}
               {profile?.subscription_tier === "free" && canStartTrial && !isOnTrial && location.pathname.includes("/insights") && (
                 <div className="mb-6">
                   <StartTrialCard onStartTrial={async () => {
                     const success = await startTrial();
                     if (success) {
                       refetchTrial();
-                      checkAuth(); // Refresh profile to show premium features
+                      checkAuth();
                     }
                     return success;
                   }} />
                 </div>
               )}
               
-              <Suspense fallback={<div className="flex items-center justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-primary" /></div>}>
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <div className="flex flex-col items-center gap-3">
+                    <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                  </div>
+                </div>
+              }>
                 {renderContent()}
               </Suspense>
             </div>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, Lightbulb, Zap } from "lucide-react";
+import { Sparkles, RefreshCw, Lightbulb, Zap, Wand2 } from "lucide-react";
 
 interface Profile {
   role: string;
@@ -46,7 +46,6 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
   const isEnterprise = profile?.subscription_tier === "enterprise";
 
   useEffect(() => {
-    // Check if we received topic and idea from navigation state
     if (location.state) {
       const { topic: navTopic, idea: navIdea } = location.state as { topic?: string; idea?: string };
       if (navTopic) setTopic(navTopic);
@@ -55,7 +54,6 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
   }, [location.state]);
 
   useEffect(() => {
-    // Ensure model selection is appropriate for subscription tier
     if (selectedModel === "openai/gpt-5" && !isEnterprise) {
       setSelectedModel("google/gemini-2.5-flash");
     }
@@ -82,12 +80,9 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
       if (error) throw error;
 
       toast.success("New posts generated! 20 credits deducted.");
-
-      // Clear inputs
       setTopic("");
       setIdea("");
 
-      // Fetch updated credits
       const { data: { user } } = await supabase.auth.getUser();
       const { data: profileData } = await supabase
         .from("profiles")
@@ -99,7 +94,6 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
         onCreditsUpdate(profileData.credits);
       }
 
-      // Notify parent to refresh posts
       onPostsGenerated();
     } catch (error: any) {
       toast.error(error.message || "Failed to generate posts");
@@ -121,7 +115,6 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
 
     setGenerating(true);
     try {
-      // Generate batches
       for (let i = 0; i < batchSize; i++) {
         const { error } = await supabase.functions.invoke("generate-posts", {
           body: {
@@ -136,12 +129,11 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
       }
 
       const creditsUsed = batchSize * 20;
-      toast.success(`Batch generation complete! ${batchSize * 2} new posts created. ${creditsUsed} credits deducted.`);
+      toast.success(`Batch complete! ${batchSize * 2} posts created. ${creditsUsed} credits deducted.`);
 
       setTopic("");
       setIdea("");
 
-      // Fetch updated credits
       const { data: { user } } = await supabase.auth.getUser();
       const { data: profileData } = await supabase
         .from("profiles")
@@ -162,116 +154,151 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">Generate Post</h1>
-        <p className="text-muted-foreground">
-          Tell us your topic and ideas to generate tailored content
+        <div className="flex items-center gap-2 mb-2">
+          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+            <Wand2 className="w-3 h-3 mr-1" />
+            AI Powered
+          </Badge>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold">Generate Post</h1>
+        <p className="text-muted-foreground mt-1">
+          Create engaging content tailored to your audience
         </p>
       </div>
 
-      <Card className="shadow-card border-2 bg-gradient-card">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl">
-              <Lightbulb className="w-5 h-5 text-primary-foreground" />
+      <Card className="bg-card border border-border/50 shadow-card overflow-hidden">
+        <CardHeader className="border-b border-border/30 bg-muted/20">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-primary rounded-xl shadow-glow">
+              <Lightbulb className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <CardTitle>What do you want to write about?</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl">What do you want to write about?</CardTitle>
+              <CardDescription className="mt-1">
                 Enter your topic and any specific ideas or direction
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="p-6 space-y-6">
           {isPremium && (
-            <div className="space-y-3">
-              <Label htmlFor="model">AI Model {isEnterprise && <Badge variant="secondary" className="ml-2">Enterprise Exclusive</Badge>}</Label>
-              <Select value={selectedModel} onValueChange={setSelectedModel} disabled={generating}>
-                <SelectTrigger id="model">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</SelectItem>
-                  <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (Premium)</SelectItem>
-                  <SelectItem value="openai/gpt-5-mini">GPT-5 Mini (Fast)</SelectItem>
-                  {isEnterprise && <SelectItem value="openai/gpt-5">GPT-5 Full (Enterprise Only)</SelectItem>}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="model" className="text-sm font-medium">
+                  AI Model
+                  {isEnterprise && (
+                    <Badge variant="secondary" className="ml-2 bg-accent/10 text-accent border-accent/20 text-xs">
+                      Enterprise
+                    </Badge>
+                  )}
+                </Label>
+                <Select value={selectedModel} onValueChange={setSelectedModel} disabled={generating}>
+                  <SelectTrigger id="model" className="bg-muted/30 border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</SelectItem>
+                    <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (Premium)</SelectItem>
+                    <SelectItem value="openai/gpt-5-mini">GPT-5 Mini (Fast)</SelectItem>
+                    {isEnterprise && <SelectItem value="openai/gpt-5">GPT-5 Full (Enterprise)</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {isPremium && (
-            <div className="space-y-3">
-              <Label>Target Platforms <Badge variant="secondary" className="ml-2">Premium</Badge></Label>
-              <div className="flex flex-wrap gap-2">
-                {["linkedin", "twitter"].map((platform) => (
-                  <Button
-                    key={platform}
-                    type="button"
-                    variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      if (selectedPlatforms.includes(platform)) {
-                        setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform));
-                      } else {
-                        setSelectedPlatforms([...selectedPlatforms, platform]);
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">
+                  Target Platforms
+                  <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary border-primary/20 text-xs">Premium</Badge>
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {["linkedin", "twitter"].map((platform) => (
+                    <Button
+                      key={platform}
+                      type="button"
+                      variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (selectedPlatforms.includes(platform)) {
+                          setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform));
+                        } else {
+                          setSelectedPlatforms([...selectedPlatforms, platform]);
+                        }
+                      }}
+                      disabled={generating}
+                      className={selectedPlatforms.includes(platform) 
+                        ? "bg-gradient-primary hover:opacity-90" 
+                        : "border-border/50 hover:border-primary/50"
                       }
-                    }}
-                    disabled={generating}
-                  >
-                    {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                  </Button>
-                ))}
+                    >
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           <div className="space-y-3">
-            <Label htmlFor="topic">Topic *</Label>
+            <Label htmlFor="topic" className="text-sm font-medium">
+              Topic <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="topic"
-              placeholder="e.g., AI in healthcare, Remote work productivity"
+              placeholder="e.g., AI in healthcare, Remote work productivity, Leadership tips..."
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               disabled={generating}
+              className="bg-muted/30 border-border/50 focus:border-primary/50 h-12"
             />
           </div>
+
           <div className="space-y-3">
-            <Label htmlFor="idea">Your Ideas (optional)</Label>
+            <Label htmlFor="idea" className="text-sm font-medium">
+              Your Ideas <span className="text-muted-foreground">(optional)</span>
+            </Label>
             <Textarea
               id="idea"
-              placeholder="e.g., Share 3 key benefits, Include a personal experience..."
+              placeholder="e.g., Share 3 key benefits, Include a personal experience, Add a call-to-action..."
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               disabled={generating}
-              rows={3}
+              rows={4}
+              className="bg-muted/30 border-border/50 focus:border-primary/50 resize-none"
             />
           </div>
+
           <Button
             onClick={generatePosts}
             disabled={generating || !topic.trim()}
-            className="w-full bg-primary hover:opacity-90 h-12"
+            className="w-full bg-gradient-primary hover:opacity-90 h-14 text-base font-semibold shadow-glow"
           >
             {generating ? (
               <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
                 Generating posts...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-5 h-5 mr-2" />
                 Generate Posts (20 credits)
               </>
             )}
           </Button>
+
           {isPremium && (
-            <>
-              <div className="space-y-3">
-                <Label htmlFor="batch-size">Batch Size <Badge variant="secondary" className="ml-2">{isEnterprise ? "Up to 20" : "Up to 5"}</Badge></Label>
+            <div className="pt-4 border-t border-border/30 space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="batch-size" className="text-sm font-medium">
+                  Batch Generation
+                  <Badge variant="secondary" className="ml-2 bg-accent/10 text-accent border-accent/20 text-xs">
+                    {isEnterprise ? "Up to 20" : "Up to 5"}
+                  </Badge>
+                </Label>
                 <Select value={batchSize.toString()} onValueChange={(v) => setBatchSize(Number(v))} disabled={generating}>
-                  <SelectTrigger id="batch-size">
+                  <SelectTrigger id="batch-size" className="w-[180px] bg-muted/30 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -286,7 +313,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
                 onClick={handleBatchGenerate}
                 disabled={generating || !topic.trim()}
                 variant="outline"
-                className="w-full"
+                className="w-full h-12 border-border/50 hover:border-accent/50 hover:bg-accent/5"
               >
                 {generating ? (
                   <>
@@ -300,7 +327,7 @@ export default function GeneratePost({ profile, onPostsGenerated, onCreditsUpdat
                   </>
                 )}
               </Button>
-            </>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Search, ArrowUpDown, Download } from "lucide-react";
+import { Search, ArrowUpDown, Download, FileText } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import ImagePromptDialog from "@/components/ImagePromptDialog";
 import { PostScheduleDialog } from "@/components/PostScheduleDialog";
@@ -130,7 +131,6 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
       setGeneratingImageForPost(postId);
 
-      // Determine post type from content
       let postType = "story";
       const contentLower = post.content.toLowerCase();
       if (
@@ -154,7 +154,6 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
       if (error) throw error;
 
-      // Update post with image URL
       const { error: updateError } = await supabase
         .from("posts")
         .update({ image_url: data.imageUrl })
@@ -162,7 +161,6 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
       if (updateError) throw updateError;
 
-      // Deduct 5 credits
       const { data: { user } } = await supabase.auth.getUser();
       const newCredits = profile.credits - 5;
       const { error: creditsError } = await supabase
@@ -232,7 +230,7 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
   const handleExportPosts = (format: "csv" | "json") => {
     if (!isPremium) {
-      toast.error("Export to CSV/JSON is a premium feature");
+      toast.error("Export is a premium feature");
       return;
     }
 
@@ -276,7 +274,6 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
     }
   };
 
-  // Filter, search, and sort posts
   const filteredPosts = posts
     .filter((post) => {
       const matchesSearch = post.content.toLowerCase().includes(searchQuery.toLowerCase());
@@ -292,74 +289,104 @@ export default function PastPosts({ posts, profile, onPostsUpdate, onCreditsUpda
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-3">Past Posts</h1>
-        <p className="text-muted-foreground">Browse, edit, and manage your generated posts</p>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+              <FileText className="w-3 h-3 mr-1" />
+              Content Library
+            </Badge>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold">Past Posts</h1>
+          <p className="text-muted-foreground mt-1">
+            Browse, edit, and manage your generated content
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-3xl font-bold gradient-text">{posts.length}</p>
+          <p className="text-sm text-muted-foreground">Total Posts</p>
+        </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Search posts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-11 h-11 bg-muted/30 border-border/50 focus:border-primary/50"
           />
         </div>
-        <Select value={filterPlatform} onValueChange={setFilterPlatform}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Platform" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Platforms</SelectItem>
-            <SelectItem value="linkedin">LinkedIn</SelectItem>
-            <SelectItem value="twitter">Twitter</SelectItem>
-            {isPremium && (
-              <>
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="facebook">Facebook</SelectItem>
-              </>
-            )}
-          </SelectContent>
-        </Select>
-        <Tabs value={filterSaved} onValueChange={setFilterSaved} className="w-full sm:w-auto">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
-            <TabsTrigger value="unsaved">Unsaved</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <Button variant="outline" size="icon" onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}>
-          <ArrowUpDown className="w-4 h-4" />
-        </Button>
-        <Button variant="outline" size="icon" onClick={() => handleExportPosts("json")}>
-          <Download className="w-4 h-4" />
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Select value={filterPlatform} onValueChange={setFilterPlatform}>
+            <SelectTrigger className="w-[140px] h-11 bg-muted/30 border-border/50">
+              <SelectValue placeholder="Platform" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Platforms</SelectItem>
+              <SelectItem value="linkedin">LinkedIn</SelectItem>
+              <SelectItem value="twitter">Twitter</SelectItem>
+            </SelectContent>
+          </Select>
+          <Tabs value={filterSaved} onValueChange={setFilterSaved}>
+            <TabsList className="bg-muted/30 border border-border/30 h-11">
+              <TabsTrigger value="all" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">All</TabsTrigger>
+              <TabsTrigger value="saved" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Saved</TabsTrigger>
+              <TabsTrigger value="unsaved" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">Unsaved</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
+            className="h-11 w-11 border-border/50 hover:border-primary/50"
+          >
+            <ArrowUpDown className="w-4 h-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => handleExportPosts("json")}
+            className="h-11 w-11 border-border/50 hover:border-primary/50"
+          >
+            <Download className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Posts Grid */}
       {filteredPosts.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No posts found. Generate your first post to get started!</p>
+        <div className="text-center py-20">
+          <div className="inline-flex p-4 rounded-2xl bg-muted/30 mb-4">
+            <FileText className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">No posts found</h3>
+          <p className="text-muted-foreground">
+            {posts.length === 0 
+              ? "Generate your first post to get started!" 
+              : "Try adjusting your filters or search query"}
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onSave={handleSave}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-              onCopy={handleCopy}
-              onGenerateImage={handleGenerateImage}
-              onOpenImagePrompt={handleOpenImagePrompt}
-              onSchedule={handleOpenScheduleDialog}
-              generatingImage={generatingImageForPost === post.id}
-              isPremium={isPremium}
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {filteredPosts.map((post, index) => (
+            <div key={post.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+              <PostCard
+                post={post}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                onCopy={handleCopy}
+                onGenerateImage={handleGenerateImage}
+                onOpenImagePrompt={handleOpenImagePrompt}
+                onSchedule={handleOpenScheduleDialog}
+                generatingImage={generatingImageForPost === post.id}
+                isPremium={isPremium}
+              />
+            </div>
           ))}
         </div>
       )}
