@@ -2,16 +2,18 @@ import {
   Sparkles,
   Lightbulb,
   TrendingUp,
-  Edit,
+  FileText,
+  Plus,
   Calendar,
+  Edit,
+  Plug,
+  Shield,
+  CreditCard,
   Megaphone,
   BarChart3,
   LogOut,
   Settings,
   Search,
-  CreditCard,
-  Shield,
-  Zap,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -28,14 +30,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 const createItems = [
   { title: "Dashboard", url: "/dashboard/insights", icon: TrendingUp },
-  { title: "Generate", url: "/dashboard/generate", icon: Sparkles },
+  { title: "Generate Post", url: "/dashboard/generate", icon: Sparkles },
   { title: "Inspiration", url: "/dashboard/inspiration", icon: Lightbulb },
-  { title: "Posts", url: "/dashboard/posts", icon: Edit },
+  { title: "Past Posts", url: "/dashboard/posts", icon: Edit },
   { title: "Scan & Optimize", url: "/dashboard/scan-optimize", icon: Search },
 ];
 
 const premiumItems = [
-  { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
+  { title: "Content Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Brand Voice", url: "/dashboard/brand-voice", icon: Megaphone },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
 ];
@@ -60,6 +62,7 @@ export function AppSidebar() {
           .single();
         setProfile(data);
 
+        // Check if user is admin
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("*")
@@ -78,162 +81,162 @@ export function AppSidebar() {
     navigate("/auth");
   };
 
-  const isPremium = profile?.subscription_tier !== "free" || profile?.trial_end_date;
-
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/30 bg-sidebar">
-      <SidebarHeader className="p-4 border-b border-border/20">
+    <Sidebar collapsible="icon" className="border-r bg-[#1e1e2e]">
+      <SidebarHeader className="p-4 border-b border-border/10">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-primary rounded-xl shadow-glow">
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
+          <div className="p-1.5 sm:p-2 bg-primary rounded-lg sm:rounded-xl">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
           </div>
-          {!collapsed && (
-            <div>
-              <h1 className="text-lg font-bold gradient-text">
-                LinkTweet
-              </h1>
-              {profile && (
-                <p className="text-xs text-muted-foreground truncate max-w-[140px]">
-                  {profile.role}
-                </p>
-              )}
-            </div>
-          )}
+          <div>
+            <h1 className="text-xl font-bold bg-primary bg-clip-text text-transparent">
+              LinkTweet
+            </h1>
+            {profile && (
+              <p className="text-xs text-muted-foreground">
+                {profile.role} · {profile.industry}
+              </p>
+            )}
+          </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-5 scrollbar-none">
-        {/* Main Navigation */}
-        <div className="space-y-1.5">
+      <SidebarContent className="px-3 py-4">
+        {/* CREATE Section */}
+        <div className="mb-6">
           {!collapsed && (
-            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mb-3 px-3">
-              Main
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+              CREATE
             </p>
           )}
-          {createItems.map((item, index) => (
-            <NavLink
-              key={item.title}
-              to={item.url}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
-                  isActive
-                    ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
-                }`
-              }
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <item.icon className="h-[18px] w-[18px] flex-shrink-0 group-hover:scale-110 transition-transform" />
-              {!collapsed && (
-                <span className="text-sm font-medium">{item.title}</span>
-              )}
-            </NavLink>
-          ))}
-        </div>
-
-        {/* Premium Features */}
-        {isPremium && (
-          <div className="mt-6 space-y-1.5">
-            {!collapsed && (
-              <div className="flex items-center gap-2 mb-3 px-3">
-                <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
-                  Premium
-                </p>
-                <div className="h-px flex-1 bg-gradient-to-r from-primary/20 to-transparent" />
-              </div>
-            )}
-            {premiumItems.map((item) => (
+          <nav className="space-y-1">
+            {createItems.map((item) => (
               <NavLink
                 key={item.title}
                 to={item.url}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                     isActive
-                      ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`
                 }
               >
-                <item.icon className="h-[18px] w-[18px] flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <item.icon className="h-5 w-5 flex-shrink-0" />
                 {!collapsed && (
                   <span className="text-sm font-medium">{item.title}</span>
                 )}
               </NavLink>
             ))}
-          </div>
-        )}
+          </nav>
+        </div>
 
-        {/* Admin Section */}
-        {isAdmin && (
-          <div className="mt-6 space-y-1.5">
+        {/* PREMIUM Features Section - Show for premium/enterprise OR if profile has trial_end_date */}
+        {(profile?.subscription_tier !== "free" || profile?.trial_end_date) && (
+          <div className="mb-6">
             {!collapsed && (
-              <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mb-3 px-3">
-                Admin
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+                {profile?.trial_end_date && profile?.subscription_tier === "premium" ? "PREMIUM TRIAL" : "PREMIUM"}
               </p>
             )}
-            <NavLink
-              to="/admin"
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
-                  isActive
-                    ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
-                }`
-              }
-            >
-              <Shield className="h-[18px] w-[18px] flex-shrink-0 group-hover:scale-110 transition-transform" />
-              {!collapsed && (
-                <span className="text-sm font-medium">Admin</span>
-              )}
-            </NavLink>
+            <nav className="space-y-1">
+              {premiumItems.map((item) => (
+                <NavLink
+                  key={item.title}
+                  to={item.url}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`
+                  }
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {!collapsed && (
+                    <span className="text-sm font-medium">{item.title}</span>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
           </div>
         )}
 
-        {/* Account Section */}
-        <div className="mt-auto pt-6 space-y-1.5">
+        {/* ADMIN Section */}
+        {isAdmin && (
+          <div className="mb-6">
+            {!collapsed && (
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+                ADMIN
+              </p>
+            )}
+            <nav className="space-y-1">
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`
+                }
+              >
+                <Shield className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && (
+                  <span className="text-sm font-medium">Admin Dashboard</span>
+                )}
+              </NavLink>
+            </nav>
+          </div>
+        )}
+
+        {/* ACCOUNT Section */}
+        <div className="mt-auto pt-6 space-y-1">
           {!collapsed && (
-            <div className="h-px bg-border/30 mb-4" />
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-3">
+              ACCOUNT
+            </p>
           )}
           <NavLink
             to="/dashboard/settings"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                 isActive
-                  ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`
             }
           >
-            <Settings className="h-[18px] w-[18px] flex-shrink-0 group-hover:scale-110 transition-transform" />
+            <Settings className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="text-sm font-medium">Settings</span>}
           </NavLink>
 
           <NavLink
             to="/pricing"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                 isActive
-                  ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`
             }
           >
-            <CreditCard className="h-[18px] w-[18px] flex-shrink-0 group-hover:scale-110 transition-transform" />
+            <CreditCard className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="text-sm font-medium">Pricing</span>}
           </NavLink>
 
           {profile?.subscription_tier === "free" && !profile?.trial_end_date && (
             <Button 
               onClick={() => navigate("/pricing")}
-              className="w-full mt-3 bg-gradient-primary hover:opacity-90 shadow-glow font-medium"
+              className="w-full mt-2 bg-primary hover:opacity-90"
             >
               {!collapsed ? (
                 <>
-                  <Zap className="w-4 h-4 mr-2" />
+                  <Sparkles className="w-4 h-4 mr-2" />
                   Start Free Trial
                 </>
               ) : (
-                <Zap className="w-4 h-4" />
+                <Sparkles className="w-4 h-4" />
               )}
             </Button>
           )}
@@ -241,20 +244,21 @@ export function AppSidebar() {
           <Button 
             onClick={handleLogout}
             variant="ghost"
-            className="w-full mt-2 justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="w-full mt-2 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <LogOut className="h-[18px] w-[18px] flex-shrink-0" />
-            {!collapsed && <span className="text-sm font-medium ml-3">Logout</span>}
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="text-sm font-medium">Logout</span>}
           </Button>
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border/20">
+      <SidebarFooter className="p-3 border-t border-border/10">
+
         {/* User Profile */}
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/30 border border-border/30">
-          <Avatar className="w-9 h-9 flex-shrink-0 ring-2 ring-primary/20">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+          <Avatar className="w-8 h-8 flex-shrink-0">
             <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm font-medium">
+            <AvatarFallback className="bg-primary/20 text-primary text-sm">
               {profile?.email?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
